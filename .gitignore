@@ -1,33 +1,49 @@
-HELP.md
+# --- Build Artifacts ---
+# Ignore the main build directories
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+build/
+bin/
+out/
 
-### STS ###
+# --- IDE Specific Files ---
+# Eclipse / Spring Tool Suite (STS)
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
+.sts4-cache/
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
 
-### NetBeans ###
+# Visual Studio Code
+.vscode/
+
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# --- Dependency Management ---
+# Keep the wrapper but ignore the heavy jar if you prefer, 
+# though usually, the jar is kept for CI/CD. 
+# If you want to keep it, comment out the line below:
+# .mvn/wrapper/maven-wrapper.jar
+
+# --- Log files ---
+*.log
+logs/
+hs_err_pid*
+replay_pid*
+
+# --- OS / Miscellaneous ---
+.DS_Store
+Thumbs.db
