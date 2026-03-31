@@ -5,6 +5,9 @@ build/
 bin/
 out/
 
+# ------- IGNORAR SENHA -------
+src/main/resources/application.properties
+
 # --- IDE Specific Files ---
 # Eclipse / Spring Tool Suite (STS)
 .apt_generated
