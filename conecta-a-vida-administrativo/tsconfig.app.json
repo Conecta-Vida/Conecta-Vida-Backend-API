@@ -23,8 +23,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* ONDE A MÁGICA ACONTECE: */
-    "baseUrl": ".",
+    /* Mapeamento de caminhos moderno (Sem baseUrl) */
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -2,12 +2,13 @@ package br.edu.ifsp.conectaavida.controller;
 
 import br.edu.ifsp.conectaavida.dto.ChartDataDTO;
 import br.edu.ifsp.conectaavida.dto.DashboardStatsDTO;
-import br.edu.ifsp.conectaavida.repository.*;
+import br.edu.ifsp.conectaavida.repository.AlertaRepository;
+import br.edu.ifsp.conectaavida.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -15,28 +16,24 @@ import java.util.stream.Collectors;
 public class DashboardController {
 
     @Autowired
-    private PacienteRepository pacienteRepository;
-
-    @Autowired
-    private RegistroVacinacaoRepository vacinacaoRepository;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private AlertaRepository alertaRepository;
 
-    // ESTA ROTA ESTAVA A FALTAR E É A QUE PREENCHE OS CARDS
     @GetMapping("/stats")
     public DashboardStatsDTO getStats() {
-        long pacientes = pacienteRepository.count();
-        long vacinas = vacinacaoRepository.count();
+        long usuarios = usuarioRepository.count();
         long alertas = alertaRepository.countByLidoFalse();
-        // O valor 42 é apenas um exemplo para agendamentos
-        return new DashboardStatsDTO(pacientes, vacinas, alertas, 42);
+
+        // Passamos 0 para as vacinas já que a funcionalidade foi removida
+        return new DashboardStatsDTO(usuarios, 0, alertas, 42);
     }
 
     @GetMapping("/chart")
     public List<ChartDataDTO> getChartData() {
-        return vacinacaoRepository.findVacinacaoMensalRaw().stream()
-                .map(obj -> new ChartDataDTO((String) obj[0], ((Number) obj[1]).longValue()))
-                .collect(Collectors.toList());
+        // Como o gráfico era baseado em vacinas, retornaremos uma lista vazia por enquanto
+        // para que a sua página de Dashboard não quebre no Frontend (React/Vite).
+        return Collections.emptyList();
     }
 }

@@ -1,7 +1,7 @@
 package br.edu.ifsp.conectaavida.service;
 
-import br.edu.ifsp.conectaavida.domain.Paciente;
-import br.edu.ifsp.conectaavida.repository.PacienteRepository;
+import br.edu.ifsp.conectaavida.domain.Usuario;
+import br.edu.ifsp.conectaavida.repository.UsuarioRepository;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -17,32 +17,34 @@ import java.util.List;
 public class RelatorioService {
 
     @Autowired
-    private PacienteRepository repository;
+    private UsuarioRepository repository;
 
-    public byte[] gerarRelatorioPacientes() {
+    // Renomeei o método para fazer sentido com os Usuários
+    public byte[] gerarRelatorioUsuarios() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             PdfWriter writer = new PdfWriter(out);
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
 
-            document.add(new Paragraph("Relatório de Pacientes - Conecta à Vida").setFontSize(18).setBold());
+            document.add(new Paragraph("Relatório de Usuários - Conecta à Vida").setFontSize(18).setBold());
             document.add(new Paragraph("Documento gerado em: " + java.time.LocalDateTime.now()));
             document.add(new Paragraph("\n"));
 
-            float[] columnWidths = {1, 4, 3, 2};
+            // Ajustei as colunas para ID, Nome, Email e Idade
+            float[] columnWidths = {1, 3, 4, 1};
             Table table = new Table(UnitValue.createPercentArray(columnWidths)).useAllAvailableWidth();
             table.addHeaderCell("ID");
             table.addHeaderCell("Nome");
-            table.addHeaderCell("CPF");
-            table.addHeaderCell("Sangue");
+            table.addHeaderCell("Email");
+            table.addHeaderCell("Idade");
 
-            List<Paciente> lista = repository.findAll();
-            for (Paciente p : lista) {
-                table.addCell(p.getId().toString());
-                table.addCell(p.getNome());
-                table.addCell(p.getCpf());
-                table.addCell(p.getTipagemSanguinea() != null ? p.getTipagemSanguinea() : "-");
+            List<Usuario> lista = repository.findAll();
+            for (Usuario u : lista) {
+                table.addCell(u.getId().toString());
+                table.addCell(u.getNome() != null ? u.getNome() : "-");
+                table.addCell(u.getEmail() != null ? u.getEmail() : "-");
+                table.addCell(u.getIdade() != null ? u.getIdade().toString() : "-");
             }
 
             document.add(table);

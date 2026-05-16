@@ -5,9 +5,7 @@ import {
   Bell, 
   Settings, 
   LogOut, 
-  Syringe, 
-  ShieldAlert,
-  ClipboardList // Mudei para um ícone mais comum de lista
+  ShieldAlert
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { VitalAlertLogo } from "./icons/VitalAlertLogo";
@@ -24,12 +22,11 @@ import {
   SidebarFooter,
 } from "./ui/sidebar";
 
+// Links do menu atualizados de acordo com as novas regras de negócio
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Pacientes", url: "/pacientes", icon: Users },
+  { title: "Utilizadores", url: "/usuarios", icon: Users },
   { title: "Campanhas", url: "/campanhas", icon: Megaphone },
-  { title: "Carteira de Vacinação", url: "/carteira-vacinacao", icon: ClipboardList }, // Renomeado aqui
-  { title: "Carteiras (Admin)", url: "/carteira", icon: Syringe },
   { title: "Alertas", url: "/alertas", icon: Bell },
   { title: "Urgência", url: "/alerta-urgente", icon: ShieldAlert },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
@@ -48,9 +45,12 @@ export function AppSidebar() {
           <span className="font-bold text-xl text-slate-900 tracking-tight">Conecta Admin</span>
         </div>
       </SidebarHeader>
+      
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="px-6 text-xs font-bold text-slate-400 uppercase tracking-widest">Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Menu Principal
+          </SidebarGroupLabel>
           <SidebarGroupContent className="px-3">
             <SidebarMenu>
               {items.map((item) => {
@@ -75,6 +75,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
       <SidebarFooter className="p-4 border-t border-slate-100">
         <button className="flex items-center gap-3 w-full p-3 text-slate-500 hover:text-red-600 transition-all font-bold text-sm">
           <LogOut className="w-5 h-5" />

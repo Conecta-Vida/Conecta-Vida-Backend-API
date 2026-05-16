@@ -31,7 +31,6 @@ export default function Campanhas() {
   const [loading, setLoading] = useState(true);
   const [openCadastro, setOpenCadastro] = useState(false);
 
-  // Carrega as campanhas do Back-end em Java
   const carregarCampanhas = async () => {
     try {
       const dados = await campanhaService.listarTodas();
@@ -45,7 +44,6 @@ export default function Campanhas() {
 
   useEffect(() => { carregarCampanhas(); }, []);
 
-  // Lógica de cadastro de nova campanha
   const handleCadastro = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -81,8 +79,8 @@ export default function Campanhas() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Campanhas de Vacinação</h1>
-          <p className="text-slate-500">Gerencie as campanhas ativas e o calendário de imunização local.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Campanhas de Saúde</h1>
+          <p className="text-slate-500">Faça a gestão de eventos, mutirões e ações de saúde para a comunidade.</p>
         </div>
         
         <Dialog open={openCadastro} onOpenChange={setOpenCadastro}>
@@ -92,7 +90,6 @@ export default function Campanhas() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px] border-none p-0 overflow-hidden">
-            {/* NOVO MINI FORMULÁRIO COM CABEÇALHO COLORIDO */}
             <div className="bg-emerald-600 p-6 text-white">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-lg">
@@ -100,7 +97,7 @@ export default function Campanhas() {
                 </div>
                 <div>
                   <DialogTitle className="text-xl font-bold text-white">Lançar Nova Campanha</DialogTitle>
-                  <p className="text-emerald-100 text-xs">Divulgue uma nova ação de vacinação para a comunidade.</p>
+                  <p className="text-emerald-100 text-xs">Divulgue uma nova ação de saúde comunitária.</p>
                 </div>
               </div>
             </div>
@@ -108,11 +105,11 @@ export default function Campanhas() {
             <form onSubmit={handleCadastro} className="p-6 grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="titulo" className="text-slate-700 font-bold">Título da Campanha</Label>
-                <Input id="titulo" name="titulo" placeholder="Ex: Campanha da Gripe 2026" required />
+                <Input id="titulo" name="titulo" placeholder="Ex: Mutirão contra a Dengue" required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="descricao" className="text-slate-700 font-bold">Descrição e Orientações</Label>
-                <Textarea id="descricao" name="descricao" placeholder="Descreva os detalhes da vacinação..." className="resize-none h-24" required />
+                <Textarea id="descricao" name="descricao" placeholder="Descreva os detalhes da campanha..." className="resize-none h-24" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -126,7 +123,7 @@ export default function Campanhas() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="publico" className="text-slate-700 font-bold">Público-Alvo</Label>
-                <Input id="publico" name="publico" placeholder="Ex: Crianças e Idosos" required />
+                <Input id="publico" name="publico" placeholder="Ex: Comunidade Geral" required />
               </div>
               <div className="flex gap-3 mt-4">
                 <Button type="button" variant="outline" onClick={() => setOpenCadastro(false)} className="flex-1 font-bold">Cancelar</Button>

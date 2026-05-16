@@ -15,12 +15,13 @@ public class RelatorioController {
     @Autowired
     private RelatorioService relatorioService;
 
-    @GetMapping("/pacientes")
-    public ResponseEntity<byte[]> baixarRelatorioPacientes() {
-        byte[] pdf = relatorioService.gerarRelatorioPacientes();
+    // Rota alterada para /usuarios
+    @GetMapping("/usuarios")
+    public ResponseEntity<byte[]> baixarRelatorioUsuarios() {
+        byte[] pdf = relatorioService.gerarRelatorioUsuarios();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio_pacientes.pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio_usuarios.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }

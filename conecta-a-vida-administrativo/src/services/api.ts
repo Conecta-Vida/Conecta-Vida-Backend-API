@@ -2,19 +2,14 @@ const API_URL = 'http://localhost:8080/api';
 
 // --- INTERFACES ---
 
-export interface Paciente {
+export interface Usuario {
   id?: number;
   nome: string;
-  cpf: string;
-  dataNascimento: string;
-  tipagemSanguinea: string;
-}
-
-export interface Vacina {
-  id?: number;
-  nome: string;
-  descricao?: string;
-  intervaloDosesDias?: number;
+  email: string;
+  senha?: string;
+  idade?: number;
+  sexo?: string;
+  localizacao?: string;
 }
 
 export interface Campanha {
@@ -54,27 +49,9 @@ export interface LogAtividade {
   dataHora: string;
 }
 
-export interface RegistroVacinacao {
-  id?: number;
-  paciente: { id: number };
-  vacina: { id: number };
-  dataAplicacao: string;
-  lote: string;
-  profissionalSaude?: string;
-}
-
-export interface RegistroVacinacaoDetalhado {
-  id: number;
-  paciente: Paciente;
-  vacina: Vacina;
-  dataAplicacao: string;
-  lote: string;
-  profissionalSaude: string;
-}
-
 export interface DashboardStats {
-  totalPacientes: number;
-  vacinasAplicadas: number;
+  totalUsuarios: number; // Atualizado de totalPacientes para coincidir com o banco
+  vacinasAplicadas: number; 
   alertasAtivos: number;
   agendamentosHoje: number;
 }
@@ -86,51 +63,51 @@ export interface ChartData {
 
 // --- SERVIÇOS ---
 
-export const pacienteService = {
-  listarTodos: async (): Promise<Paciente[]> => {
-    const response = await fetch(`${API_URL}/pacientes`);
-    if (!response.ok) throw new Error('Erro ao buscar pacientes');
+export const usuarioService = {
+  listarTodos: async (): Promise<Usuario[]> => {
+    const response = await fetch(`${API_URL}/usuarios`);
+    if (!response.ok) throw new Error('Erro ao buscar usuários');
     return response.json();
   },
 
-  buscarPorCpf: async (cpf: string): Promise<Paciente | null> => {
-    const response = await fetch(`${API_URL}/pacientes/cpf/${cpf}`);
+  buscarPorEmail: async (email: string): Promise<Usuario | null> => {
+    const response = await fetch(`${API_URL}/usuarios/email/${email}`);
     if (response.status === 404) return null;
     if (!response.ok) throw new Error('Erro na busca');
     return response.json();
   },
 
-  cadastrar: async (paciente: Paciente): Promise<Paciente> => {
-    const response = await fetch(`${API_URL}/pacientes`, {
+  cadastrar: async (usuario: Usuario): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/usuarios`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paciente)
+      body: JSON.stringify(usuario)
     });
     return response.json();
   },
 
-  atualizar: async (id: number, paciente: Paciente): Promise<Paciente> => {
-    const response = await fetch(`${API_URL}/pacientes/${id}`, {
+  atualizar: async (id: number, usuario: Usuario): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paciente)
+      body: JSON.stringify(usuario)
     });
     return response.json();
   },
 
   deletar: async (id: number): Promise<void> => {
-    await fetch(`${API_URL}/pacientes/${id}`, { method: 'DELETE' });
+    await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
   },
 
   exportarCsv: () => {
-    window.open(`${API_URL}/pacientes/exportar-csv`, '_blank');
+    window.open(`${API_URL}/usuarios/exportar-csv`, '_blank');
   },
 
   importarCsv: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${API_URL}/pacientes/importar-csv`, {
+    const response = await fetch(`${API_URL}/usuarios/importar-csv`, {
       method: 'POST',
       body: formData,
     });
@@ -183,29 +160,6 @@ export const logService = {
   }
 };
 
-export const vacinaService = {
-  listarTodas: async (): Promise<Vacina[]> => {
-    const response = await fetch(`${API_URL}/vacinas`);
-    return response.json();
-  }
-};
-
-export const registroVacinacaoService = {
-  listarPorPaciente: async (pacienteId: number): Promise<RegistroVacinacaoDetalhado[]> => {
-    const response = await fetch(`${API_URL}/vacinacao/paciente/${pacienteId}`);
-    return response.json();
-  },
-
-  registrar: async (registro: RegistroVacinacao): Promise<RegistroVacinacaoDetalhado> => {
-    const response = await fetch(`${API_URL}/vacinacao`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(registro)
-    });
-    return response.json();
-  }
-};
-
 export const alertaService = {
   listarTodos: async (): Promise<Alerta[]> => {
     const response = await fetch(`${API_URL}/alertas`);
@@ -234,8 +188,8 @@ export const unidadeSaudeService = {
 };
 
 export const relatorioService = {
-  downloadPacientesPdf: async (): Promise<void> => {
-    const response = await fetch(`${API_URL}/pacientes/exportar-pdf`);
+  downloadUsuariosPdf: async (): Promise<void> => {
+    const response = await fetch(`${API_URL}/relatorios/usuarios`);
     if (!response.ok) throw new Error('Erro ao gerar relatório PDF');
     
     const blob = await response.blob();
@@ -243,7 +197,7 @@ export const relatorioService = {
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `relatorio_pacientes_${new Date().getTime()}.pdf`;
+    a.download = `relatorio_usuarios_${new Date().getTime()}.pdf`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);

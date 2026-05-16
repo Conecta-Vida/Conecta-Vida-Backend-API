@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { 
   Users, 
-  Calendar, 
-  Activity, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Syringe, 
+  Megaphone, 
   History,
   TrendingUp,
-  Bell
+  Bell,
+  Newspaper
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -40,7 +37,6 @@ export default function Index() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        // Busca todas as informações em paralelo da API Java
         const [resStats, resChart, resLogs] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getChartData(),
@@ -60,30 +56,30 @@ export default function Index() {
     carregarDados();
   }, []);
 
-  const s = stats || { totalPacientes: 0, vacinasAplicadas: 0, alertasAtivos: 0, agendamentosHoje: 0 };
+  const s = stats || { totalUsuarios: 0, vacinasAplicadas: 0, alertasAtivos: 0, agendamentosHoje: 0 };
 
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Administrativa</h1>
-        <p className="text-slate-500 font-medium">Resumo em tempo real da unidade de saúde.</p>
+        <p className="text-slate-500 font-medium">Resumo em tempo real do ecossistema Conecta à Vida.</p>
       </div>
 
-      {/* Cards de Métricas Reais */}
+      {/* CARDS DE MÉTRICAS ATUALIZADAS CONFORME O BANCO DE DADOS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          title="Pacientes Totais" 
-          value={loading ? "..." : s.totalPacientes} 
+          title="Usuários Cadastrados" 
+          value={loading ? "..." : s.totalUsuarios} 
           trend="+4%" 
           up={true} 
           icon={<Users className="w-5 h-5 text-blue-600"/>} 
         />
         <StatCard 
-          title="Vacinas Aplicadas" 
-          value={loading ? "..." : s.vacinasAplicadas.toLocaleString('pt-BR')} 
-          trend="+12%" 
+          title="Campanhas Ativas" 
+          value={loading ? "..." : "03"} 
+          trend="Em andamento" 
           up={true} 
-          icon={<Syringe className="w-5 h-5 text-purple-600"/>} 
+          icon={<Megaphone className="w-5 h-5 text-purple-600"/>} 
         />
         <StatCard 
           title="Alertas Ativos" 
@@ -93,21 +89,22 @@ export default function Index() {
           icon={<Bell className="w-5 h-5 text-red-600"/>} 
         />
         <StatCard 
-          title="Agendamentos" 
-          value={loading ? "..." : `+${s.agendamentosHoje}`} 
-          trend="+18%" 
+          title="Notícias Publicadas" 
+          value={loading ? "..." : "12"} 
+          trend="Informativos" 
           up={true} 
-          icon={<Calendar className="w-5 h-5 text-green-600"/>} 
+          icon={<Newspaper className="w-5 h-5 text-green-600"/>} 
         />
       </div>
 
       <div className="grid gap-4 md:grid-cols-7">
+        {/* GRÁFICO ADAPTADO PARA CRESCIMENTO DE USUÁRIOS */}
         <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-600" /> Fluxo de Imunização
+              <TrendingUp className="w-5 h-5 text-blue-600" /> Crescimento da Plataforma
             </CardTitle>
-            <CardDescription>Doses aplicadas nos últimos meses.</CardDescription>
+            <CardDescription>Novos usuários integrados à comunidade nos últimos meses.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] pt-4">
             {chartData.length > 0 ? (
@@ -128,12 +125,13 @@ export default function Index() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-slate-400 italic">
-                {loading ? "A carregar dados..." : "Nenhuma vacina registada para o gráfico."}
+                {loading ? "A carregar dados..." : "Nenhum fluxo de novos usuários registrado para o gráfico."}
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* HISTÓRICO DE LOGS DE ATIVIDADE */}
         <Card className="lg:col-span-3 border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -145,7 +143,7 @@ export default function Index() {
               {logs.length > 0 ? logs.map((log) => (
                 <div key={log.id} className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600">
-                    {log.usuario[0].toUpperCase()}
+                    {log.usuario ? log.usuario[0].toUpperCase() : "A"}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-bold text-slate-800">{log.usuario}</p>
@@ -173,8 +171,8 @@ function StatCard({ title, value, trend, up, icon }: { title: string, value: any
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold text-slate-900">{value}</div>
-        <p className={`text-xs font-bold flex items-center gap-1 mt-1 ${up ? 'text-green-600' : 'text-red-600'}`}>
-          {trend} <span className="text-slate-400 font-normal">vs. mês passado</span>
+        <p className={`text-xs font-bold flex items-center gap-1 mt-1 ${up ? 'text-green-600' : 'text-slate-400'}`}>
+          {trend} <span className="text-slate-400 font-normal">esta semana</span>
         </p>
       </CardContent>
     </Card>
