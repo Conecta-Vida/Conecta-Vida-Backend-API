@@ -1,31 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Megaphone, 
-  Plus, 
-  Calendar, 
-  Users, 
-  Trash2, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2 
-} from "lucide-react";
+import { Megaphone, Plus, Calendar, Users, Trash2, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { type Campanha, campanhaService } from "../services/api";
 import { toast } from "sonner";
 
+// PARA A EQUIPE: Tela de listagem e criação de campanhas de saúde (cards).
 export default function Campanhas() {
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +39,7 @@ export default function Campanhas() {
       dataInicio: formData.get("inicio") as string,
       dataFim: formData.get("fim") as string,
       publicoAlvo: formData.get("publico") as string,
-      status: "Agendada", 
+      status: "Agendada", // Por padrão criamos a campanha como "Agendada"
     };
 
     try {
@@ -67,6 +52,7 @@ export default function Campanhas() {
     }
   };
 
+  // PARA A EQUIPE: Função que retorna visualmente a cor da badge baseada no status.
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Ativa": return <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3"/> Ativa</span>;
@@ -92,9 +78,7 @@ export default function Campanhas() {
           <DialogContent className="sm:max-w-[500px] border-none p-0 overflow-hidden">
             <div className="bg-emerald-600 p-6 text-white">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <Megaphone className="w-6 h-6 text-white" />
-                </div>
+                <div className="p-2 bg-white/20 rounded-lg"><Megaphone className="w-6 h-6 text-white" /></div>
                 <div>
                   <DialogTitle className="text-xl font-bold text-white">Lançar Nova Campanha</DialogTitle>
                   <p className="text-emerald-100 text-xs">Divulgue uma nova ação de saúde comunitária.</p>
@@ -103,33 +87,17 @@ export default function Campanhas() {
             </div>
 
             <form onSubmit={handleCadastro} className="p-6 grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="titulo" className="text-slate-700 font-bold">Título da Campanha</Label>
-                <Input id="titulo" name="titulo" placeholder="Ex: Mutirão contra a Dengue" required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="descricao" className="text-slate-700 font-bold">Descrição e Orientações</Label>
-                <Textarea id="descricao" name="descricao" placeholder="Descreva os detalhes da campanha..." className="resize-none h-24" required />
-              </div>
+              <div className="grid gap-2"><Label className="text-slate-700 font-bold">Título da Campanha</Label><Input name="titulo" required /></div>
+              <div className="grid gap-2"><Label className="text-slate-700 font-bold">Descrição</Label><Textarea name="descricao" className="resize-none h-24" required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="inicio" className="text-slate-700 font-bold">Data de Início</Label>
-                  <Input id="inicio" name="inicio" type="date" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="fim" className="text-slate-700 font-bold">Data de Término</Label>
-                  <Input id="fim" name="fim" type="date" required />
-                </div>
+                <div className="grid gap-2"><Label className="text-slate-700 font-bold">Início</Label><Input name="inicio" type="date" required /></div>
+                <div className="grid gap-2"><Label className="text-slate-700 font-bold">Término</Label><Input name="fim" type="date" required /></div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="publico" className="text-slate-700 font-bold">Público-Alvo</Label>
-                <Input id="publico" name="publico" placeholder="Ex: Comunidade Geral" required />
-              </div>
+              <div className="grid gap-2"><Label className="text-slate-700 font-bold">Público-Alvo</Label><Input name="publico" required /></div>
+              
               <div className="flex gap-3 mt-4">
                 <Button type="button" variant="outline" onClick={() => setOpenCadastro(false)} className="flex-1 font-bold">Cancelar</Button>
-                <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700 font-bold shadow-lg shadow-emerald-100">
-                  Salvar e Publicar
-                </Button>
+                <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700 font-bold">Salvar e Publicar</Button>
               </div>
             </form>
           </DialogContent>
@@ -149,6 +117,7 @@ export default function Campanhas() {
                   </div>
                   {getStatusBadge(campanha.status)}
                 </div>
+                {/* O Link navega para a página de Detalhes da campanha usando o ID dela na URL */}
                 <Link to={`/campanhas/${campanha.id}`}>
                   <CardTitle className="text-xl mt-4 text-slate-800 hover:text-blue-600 cursor-pointer transition-colors">
                     {campanha.titulo}
@@ -157,28 +126,19 @@ export default function Campanhas() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-slate-500 line-clamp-2">{campanha.descricao}</p>
-                
                 <div className="pt-4 border-t border-slate-100 space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-500">Público:</span>
-                    <span className="font-semibold text-slate-700">{campanha.publicoAlvo}</span>
+                    <span className="text-slate-500">Público:</span><span className="font-semibold text-slate-700">{campanha.publicoAlvo}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <Calendar className="w-4 h-4" />
                     <span>{new Date(campanha.dataInicio).toLocaleDateString()} - {new Date(campanha.dataFim).toLocaleDateString()}</span>
                   </div>
                 </div>
-
-                <div className="pt-2">
-                  <Button variant="ghost" size="sm" className="w-full text-slate-400 hover:text-red-600 hover:bg-red-50">
-                    <Trash2 className="w-4 h-4 mr-2" /> Excluir Registro
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))}
-
           {campanhas.length === 0 && (
             <div className="col-span-full py-20 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
               <Megaphone className="w-12 h-12 text-slate-200 mx-auto mb-4" />

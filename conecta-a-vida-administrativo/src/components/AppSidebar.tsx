@@ -1,28 +1,9 @@
-import { 
-  LayoutDashboard, 
-  Users, 
-  Megaphone, 
-  Bell, 
-  Settings, 
-  LogOut, 
-  ShieldAlert
-} from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, Bell, Settings, LogOut, ShieldAlert } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { VitalAlertLogo } from "./icons/VitalAlertLogo";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-} from "./ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from "./ui/sidebar";
 
-// Links do menu atualizados de acordo com as novas regras de negócio
+// PARA A EQUIPE: Se precisarem adicionar um novo link no menu, basta colocar aqui neste array!
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Utilizadores", url: "/usuarios", icon: Users },
@@ -33,7 +14,7 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const location = useLocation();
+  const location = useLocation(); // Hook para sabermos em qual página estamos e pintar o menu de azul
 
   return (
     <Sidebar className="border-r border-slate-200">

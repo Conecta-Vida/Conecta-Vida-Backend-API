@@ -1,12 +1,9 @@
 package br.edu.ifsp.conectaavida.controller;
 
-import br.edu.ifsp.conectaavida.dto.ChartDataDTO;
-import br.edu.ifsp.conectaavida.dto.DashboardStatsDTO;
-import br.edu.ifsp.conectaavida.repository.AlertaRepository;
-import br.edu.ifsp.conectaavida.repository.UsuarioRepository;
+import br.edu.ifsp.conectaavida.dto.*;
+import br.edu.ifsp.conectaavida.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -15,25 +12,18 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class DashboardController {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private AlertaRepository alertaRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private AlertaRepository alertaRepository;
 
     @GetMapping("/stats")
     public DashboardStatsDTO getStats() {
-        long usuarios = usuarioRepository.count();
-        long alertas = alertaRepository.countByLidoFalse();
-
-        // Passamos 0 para as vacinas já que a funcionalidade foi removida
-        return new DashboardStatsDTO(usuarios, 0, alertas, 42);
+        // Retorna DTOs populados com o total das tabelas usando '.count()'
+        return new DashboardStatsDTO(usuarioRepository.count(), alertaRepository.countByLidoFalse());
     }
 
     @GetMapping("/chart")
     public List<ChartDataDTO> getChartData() {
-        // Como o gráfico era baseado em vacinas, retornaremos uma lista vazia por enquanto
-        // para que a sua página de Dashboard não quebre no Frontend (React/Vite).
+        // Retorna vazio temporariamente para não quebrar o layout do Frontend.
         return Collections.emptyList();
     }
 }

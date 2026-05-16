@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Campanha, campanhaService } from "../services/api";
 import { toast } from "sonner";
 
+// PARA A EQUIPE: Tela que exibe 1 única campanha. A rota /campanhas/:id passa o ID 
+// que nós capturamos aqui através do hook `useParams()`.
 export default function CampanhaDetalhes() {
-  const { id } = useParams();
+  const { id } = useParams(); // Pega o número lá na URL
   const [campanha, setCampanha] = useState<Campanha | null>(null);
 
   useEffect(() => {
@@ -44,11 +46,11 @@ export default function CampanhaDetalhes() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-8 pt-6">
-          
           <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
             <h3 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
               <Info className="w-5 h-5" /> Sobre a Ação
             </h3>
+            {/* whitespace-pre-wrap permite que os 'enters' que o usuário digitou no banco sejam mantidos na tela */}
             <p className="text-slate-700 text-lg leading-relaxed font-medium whitespace-pre-wrap">
               {campanha.descricao}
             </p>
@@ -56,9 +58,7 @@ export default function CampanhaDetalhes() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-              <div className="p-3 bg-white rounded-lg shadow-sm">
-                <Users className="w-6 h-6 text-blue-500" />
-              </div>
+              <div className="p-3 bg-white rounded-lg shadow-sm"><Users className="w-6 h-6 text-blue-500" /></div>
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Público-Alvo</span>
                 <p className="font-bold text-slate-800 text-lg">{campanha.publicoAlvo}</p>
@@ -66,9 +66,7 @@ export default function CampanhaDetalhes() {
             </div>
 
             <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-              <div className="p-3 bg-white rounded-lg shadow-sm">
-                <Calendar className="w-6 h-6 text-orange-500" />
-              </div>
+              <div className="p-3 bg-white rounded-lg shadow-sm"><Calendar className="w-6 h-6 text-orange-500" /></div>
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cronograma</span>
                 <p className="font-bold text-slate-800 text-lg">
@@ -77,7 +75,6 @@ export default function CampanhaDetalhes() {
               </div>
             </div>
           </div>
-
         </CardContent>
       </Card>
     </div>

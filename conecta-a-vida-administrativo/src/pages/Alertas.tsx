@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { type Alerta, alertaService } from "../services/api";
 import { toast } from "sonner";
 
+// PARA A EQUIPE: Interface que lê mensagens do banco de dados (Avisos).
 export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,7 @@ export default function Alertas() {
 
   useEffect(() => { carregarAlertas(); }, []);
 
+  // Quando marcado como lido, ele some da tela imediatamente atualizando o State (filter).
   const handleMarcarLido = async (id: number) => {
     try {
       await alertaService.marcarComoLido(id);
@@ -32,23 +34,12 @@ export default function Alertas() {
     }
   };
 
+  // PARA A EQUIPE: Função auxiliar para definir classes do Tailwind dinâmicas com base na gravidade do alerta.
   const getEstiloAlerta = (tipo: string) => {
     switch (tipo) {
-      case "urgente": return {
-        icone: <AlertTriangle className="w-6 h-6 text-red-600" />,
-        cor: "border-red-200 bg-red-50",
-        texto: "text-red-900"
-      };
-      case "aviso": return {
-        icone: <AlertCircle className="w-6 h-6 text-amber-600" />,
-        cor: "border-amber-200 bg-amber-50",
-        texto: "text-amber-900"
-      };
-      default: return {
-        icone: <Info className="w-6 h-6 text-blue-600" />,
-        cor: "border-blue-200 bg-blue-50",
-        texto: "text-blue-900"
-      };
+      case "urgente": return { icone: <AlertTriangle className="w-6 h-6 text-red-600" />, cor: "border-red-200 bg-red-50", texto: "text-red-900" };
+      case "aviso": return { icone: <AlertCircle className="w-6 h-6 text-amber-600" />, cor: "border-amber-200 bg-amber-50", texto: "text-amber-900" };
+      default: return { icone: <Info className="w-6 h-6 text-blue-600" />, cor: "border-blue-200 bg-blue-50", texto: "text-blue-900" };
     }
   };
 
@@ -64,7 +55,7 @@ export default function Alertas() {
               </span>
             )}
           </div>
-          <p className="text-slate-500">Monitorização de stock e notificações do sistema.</p>
+          <p className="text-slate-500">Monitorização de notificações do sistema.</p>
         </div>
       </div>
 
@@ -96,11 +87,7 @@ export default function Alertas() {
                       </div>
                       <p className={`${estilo.texto} opacity-80 mt-1`}>{alerta.descricao}</p>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      className="bg-white/50 hover:bg-white text-slate-700"
-                      onClick={() => alerta.id && handleMarcarLido(alerta.id)}
-                    >
+                    <Button variant="ghost" className="bg-white/50 hover:bg-white text-slate-700" onClick={() => alerta.id && handleMarcarLido(alerta.id)}>
                       <CheckCircle2 className="w-4 h-4 mr-2" /> Lido
                     </Button>
                   </div>

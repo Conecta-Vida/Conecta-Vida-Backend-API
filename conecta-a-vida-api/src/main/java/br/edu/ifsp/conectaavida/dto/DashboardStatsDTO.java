@@ -6,8 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class DashboardStatsDTO {
-    private long totalUsuarios; // Mudou de totalPacientes para totalUsuarios
-    private long vacinasAplicadas; // Deixaremos aqui temporariamente com valor 0 para não quebrar o seu Frontend
+    // Este DTO agrupa as estatísticas que aparecem nos "cards" principais do painel.
+    private long totalUsuarios;
     private long alertasAtivos;
-    private long agendamentosHoje;
 }

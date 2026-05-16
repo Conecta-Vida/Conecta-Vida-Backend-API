@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CampanhaRepository extends JpaRepository<Campanha, Long> {
-    // Apenas métodos de Campanha aqui
+    // Como não precisamos de buscas complexas, deixamos vazio e usamos os métodos padrão.
 }

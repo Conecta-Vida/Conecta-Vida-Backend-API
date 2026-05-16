@@ -1,7 +1,7 @@
 package br.edu.ifsp.conectaavida.controller;
 
 import br.edu.ifsp.conectaavida.domain.UnidadeSaude;
-import br.edu.ifsp.conectaavida.repository.UnidadeSaudeRepository; // Importação que estava faltando
+import br.edu.ifsp.conectaavida.repository.UnidadeSaudeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,19 +10,18 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class UnidadeSaudeController {
 
-    @Autowired
-    private UnidadeSaudeRepository repository;
+    @Autowired private UnidadeSaudeRepository repository;
 
     @GetMapping
     public UnidadeSaude obter() {
-        // Retorna a primeira configuração encontrada ou uma nova vazia
-        return repository.findAll().stream().findFirst().orElse(new UnidadeSaude());
+        // Se já existe uma Unidade de Saúde salva, retorna ela. Se não, devolve uma em branco.
+        return repository.findTopByOrderByIdAsc().orElse(new UnidadeSaude());
     }
 
     @PostMapping
     public UnidadeSaude salvar(@RequestBody UnidadeSaude dados) {
-        // Lógica para manter sempre apenas um registro (configuração única da UBS)
-        repository.findAll().stream().findFirst().ifPresent(u -> dados.setId(u.getId()));
+        // Força a atualização do registro existente, garantindo que sempre exista apenas UMA Unidade.
+        repository.findTopByOrderByIdAsc().ifPresent(u -> dados.setId(u.getId()));
         return repository.save(dados);
     }
 }

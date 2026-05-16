@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Users, Search, Plus, MoreHorizontal, Edit2, Trash2, Download } from "lucide-react";
 import { type Usuario, usuarioService, relatorioService } from "../services/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
+// PARA A EQUIPE: Esta tela gerencia o CRUD (Criar, Ler, Atualizar, Deletar) de Usuários.
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busca, setBusca] = useState("");
@@ -28,9 +29,20 @@ export default function Usuarios() {
 
   useEffect(() => { carregarUsuarios(); }, []);
 
+  // PARA A EQUIPE: useMemo memoriza a lista filtrada. Se tivermos 5.000 usuários, 
+  // ele só refaz o filtro se a variável 'busca' ou 'usuarios' mudar, deixando a tela super rápida.
+  const usuariosFiltrados = useMemo(() => {
+    const termo = busca.toLowerCase();
+    return usuarios.filter(u => 
+      u.nome.toLowerCase().includes(termo) || 
+      u.email.toLowerCase().includes(termo)
+    );
+  }, [usuarios, busca]);
+
+  // Função disparada ao enviar o formulário de NOVO usuário
   const handleCadastro = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget); // Pega todos os inputs do form magicamente
     const novo: Usuario = {
       nome: formData.get("nome") as string,
       email: formData.get("email") as string,
@@ -44,12 +56,13 @@ export default function Usuarios() {
       await usuarioService.cadastrar(novo);
       toast.success("Utilizador registado com sucesso!");
       setOpenCadastro(false);
-      carregarUsuarios();
+      carregarUsuarios(); // Atualiza a tabela chamando a API de novo
     } catch {
       toast.error("Erro ao registar.");
     }
   };
 
+  // Função disparada ao enviar o formulário de EDIÇÃO
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!usuarioEditando?.id) return;
@@ -66,7 +79,7 @@ export default function Usuarios() {
 
     try {
       await usuarioService.atualizar(usuarioEditando.id, dadosAtualizados);
-      toast.success("Dados updated!");
+      toast.success("Dados atualizados!");
       setOpenEdicao(false);
       carregarUsuarios();
     } catch {
@@ -94,10 +107,12 @@ export default function Usuarios() {
         </h1>
         
         <div className="flex gap-2">
+          {/* Chama a geração de PDF no backend */}
           <Button variant="outline" onClick={() => relatorioService.downloadUsuariosPdf()} className="gap-2">
             <Download className="w-4 h-4" /> Exportar PDF
           </Button>
 
+          {/* Modal de Cadastro */}
           <Dialog open={openCadastro} onOpenChange={setOpenCadastro}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 gap-2 font-bold"><Plus className="w-4 h-4" /> Novo Utilizador</Button>
@@ -123,7 +138,7 @@ export default function Usuarios() {
         </div>
       </div>
 
-      {/* MODAL DE EDIÇÃO */}
+      {/* Modal de Edição (Abre quando o usuário clica em Editar na tabela) */}
       <Dialog open={openEdicao} onOpenChange={setOpenEdicao}>
         <DialogContent className="p-0 overflow-hidden border-none shadow-2xl">
           <div className="bg-amber-500 p-6 text-white">
@@ -167,6 +182,7 @@ export default function Usuarios() {
         </DialogContent>
       </Dialog>
 
+      {/* Barra de Pesquisa */}
       <div className="relative">
         <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
         <Input 
@@ -188,7 +204,8 @@ export default function Usuarios() {
             </TableRow>
           </TableHeader>
           <TableBody className="bg-white">
-            {usuarios.filter(u => u.nome.toLowerCase().includes(busca.toLowerCase()) || u.email.toLowerCase().includes(busca.toLowerCase())).map((u) => (
+            {/* Renderiza a lista filtrada pelo useMemo ao invés da lista bruta */}
+            {usuariosFiltrados.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium text-slate-900">{u.nome}</TableCell>
                 <TableCell className="text-slate-500">{u.email}</TableCell>

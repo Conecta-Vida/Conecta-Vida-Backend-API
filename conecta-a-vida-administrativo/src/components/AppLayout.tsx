@@ -1,7 +1,10 @@
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Outlet } from "react-router-dom"; // Importamos o Outlet para renderizar as rotas filhas
+import { Outlet } from "react-router-dom";
 
+// PARA A EQUIPE: Este é o "molde" que engloba o sistema. A barra lateral (Sidebar) fica fixa.
+// O componente <Outlet /> atua como um "buraco", onde o React Router injeta dinamicamente 
+// a página atual (ex: Index, Usuarios) dependendo da URL que o usuário acessa.
 export default function AppLayout() {
   return (
     <SidebarProvider>
@@ -14,7 +17,7 @@ export default function AppLayout() {
             <span className="ml-4 text-sm font-medium text-slate-500">Sistema de Gestão à Vida</span>
           </header>
           <div className="p-8">
-            {/* O Outlet substitui o {children} e renderiza a página da rota atual */}
+            {/* O conteúdo da página aparece aqui dentro */}
             <Outlet />
           </div>
         </main>
