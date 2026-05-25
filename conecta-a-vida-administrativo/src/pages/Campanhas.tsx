@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Megaphone, Plus, Calendar, Users, Trash2, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Megaphone, Plus, Calendar, Users, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import { type Campanha, campanhaService } from "../services/api";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: Tela de listagem e criação de campanhas de saúde (cards).
 export default function Campanhas() {
   const [campanhas, setCampanhas] = useState<Campanha[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,10 +35,10 @@ export default function Campanhas() {
     const novaCampanha: Campanha = {
       titulo: formData.get("titulo") as string,
       descricao: formData.get("descricao") as string,
-      dataInicio: formData.get("inicio") as string,
-      dataFim: formData.get("fim") as string,
+      dataInicio: new Date(formData.get("inicio") as string).toISOString(),
+      dataFim: new Date(formData.get("fim") as string).toISOString(),
       publicoAlvo: formData.get("publico") as string,
-      status: "Agendada", // Por padrão criamos a campanha como "Agendada"
+      status: "Agendada",
     };
 
     try {
@@ -52,7 +51,6 @@ export default function Campanhas() {
     }
   };
 
-  // PARA A EQUIPE: Função que retorna visualmente a cor da badge baseada no status.
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Ativa": return <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3"/> Ativa</span>;
@@ -86,7 +84,7 @@ export default function Campanhas() {
               </div>
             </div>
 
-            <form onSubmit={handleCadastro} className="p-6 grid gap-4">
+            <form onSubmit={handleCadastro} className="p-6 grid gap-4 bg-white">
               <div className="grid gap-2"><Label className="text-slate-700 font-bold">Título da Campanha</Label><Input name="titulo" required /></div>
               <div className="grid gap-2"><Label className="text-slate-700 font-bold">Descrição</Label><Textarea name="descricao" className="resize-none h-24" required /></div>
               <div className="grid grid-cols-2 gap-4">
@@ -117,7 +115,6 @@ export default function Campanhas() {
                   </div>
                   {getStatusBadge(campanha.status)}
                 </div>
-                {/* O Link navega para a página de Detalhes da campanha usando o ID dela na URL */}
                 <Link to={`/campanhas/${campanha.id}`}>
                   <CardTitle className="text-xl mt-4 text-slate-800 hover:text-blue-600 cursor-pointer transition-colors">
                     {campanha.titulo}
@@ -133,7 +130,7 @@ export default function Campanhas() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-slate-500">
                     <Calendar className="w-4 h-4" />
-                    <span>{new Date(campanha.dataInicio).toLocaleDateString()} - {new Date(campanha.dataFim).toLocaleDateString()}</span>
+                    <span>{campanha.dataInicio ? new Date(campanha.dataInicio).toLocaleDateString() : ""} - {campanha.dataFim ? new Date(campanha.dataFim).toLocaleDateString() : ""}</span>
                   </div>
                 </div>
               </CardContent>

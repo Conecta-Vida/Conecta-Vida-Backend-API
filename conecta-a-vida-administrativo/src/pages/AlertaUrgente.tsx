@@ -1,10 +1,8 @@
-import { AlertTriangle, ShieldAlert, Users, MapPin, Activity, ChevronLeft } from "lucide-react";
+import { AlertTriangle, ShieldAlert, MapPin, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-// PARA A EQUIPE: Esta tela atualmente serve como um "Template Visual Estático" projetado 
-// no protótipo, usado em momentos de crise. Ainda não possui conexão com a API.
 export default function AlertaUrgente() {
   return (
     <div className="space-y-8 pb-10">
@@ -33,7 +31,7 @@ export default function AlertaUrgente() {
       <Card className="border-none shadow-sm overflow-hidden">
         <CardHeader className="bg-slate-900 text-white">
           <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-400" /> Orientações para Profissionais de Saúde
+            <ShieldAlert className="w-5 h-5 text-blue-400" /> Orientações para Profissionais de Saúde
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">

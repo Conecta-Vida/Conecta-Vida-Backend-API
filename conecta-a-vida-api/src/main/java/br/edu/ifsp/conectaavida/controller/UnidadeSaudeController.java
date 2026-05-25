@@ -1,7 +1,7 @@
 package br.edu.ifsp.conectaavida.controller;
 
-import br.edu.ifsp.conectaavida.domain.UnidadeSaude;
-import br.edu.ifsp.conectaavida.repository.UnidadeSaudeRepository;
+import br.edu.ifsp.conectaavida.domain.InstituicaoSaude;
+import br.edu.ifsp.conectaavida.repository.InstituicaoSaudeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,18 +10,17 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class UnidadeSaudeController {
 
-    @Autowired private UnidadeSaudeRepository repository;
+    @Autowired private InstituicaoSaudeRepository repository;
 
     @GetMapping
-    public UnidadeSaude obter() {
-        // Se já existe uma Unidade de Saúde salva, retorna ela. Se não, devolve uma em branco.
-        return repository.findTopByOrderByIdAsc().orElse(new UnidadeSaude());
+    public InstituicaoSaude obter() {
+        return repository.findTopByTipoInstituicaoOrderByIdAsc("UNIDADE").orElse(new InstituicaoSaude());
     }
 
     @PostMapping
-    public UnidadeSaude salvar(@RequestBody UnidadeSaude dados) {
-        // Força a atualização do registro existente, garantindo que sempre exista apenas UMA Unidade.
-        repository.findTopByOrderByIdAsc().ifPresent(u -> dados.setId(u.getId()));
+    public InstituicaoSaude salvar(@RequestBody InstituicaoSaude dados) {
+        dados.setTipoInstituicao("UNIDADE");
+        repository.findTopByTipoInstituicaoOrderByIdAsc("UNIDADE").ifPresent(u -> dados.setId(u.getId()));
         return repository.save(dados);
     }
 }

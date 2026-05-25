@@ -6,9 +6,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-// ATENÇÃO: Segundo parâmetro é Integer porque o ID de Usuário é Integer.
-public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Busca customizada para validação de login ou checagem.
+    // Utilizado para procurar utilizadores pelo e-mail (Login/Validações)
     Optional<Usuario> findByEmail(String email);
 }

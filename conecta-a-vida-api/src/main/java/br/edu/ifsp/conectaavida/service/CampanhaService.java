@@ -1,19 +1,27 @@
 package br.edu.ifsp.conectaavida.service;
 
-import br.edu.ifsp.conectaavida.domain.Campanha;
-import br.edu.ifsp.conectaavida.repository.CampanhaRepository;
+import br.edu.ifsp.conectaavida.domain.Comunicacao;
+import br.edu.ifsp.conectaavida.repository.ComunicacaoRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-@Service // Registra a classe no Spring para podermos injetá-la depois.
+@Service
 public class CampanhaService {
 
-    private final CampanhaRepository repository;
+    private final ComunicacaoRepository repository;
 
-    // Boa Prática: Injeção de dependência via Construtor.
-    public CampanhaService(CampanhaRepository repository) { this.repository = repository; }
+    public CampanhaService(ComunicacaoRepository repository) { this.repository = repository; }
 
-    public List<Campanha> listarTodas() { return repository.findAll(); }
-    public Campanha salvar(Campanha campanha) { return repository.save(campanha); }
-    public void deletar(Long id) { repository.deleteById(id); }
+    public List<Comunicacao> listarTodas() {
+        return repository.findByTipo("CAMPANHA");
+    }
+
+    public Comunicacao salvar(Comunicacao campanha) {
+        campanha.setTipo("CAMPANHA"); // Garante a classificação correta no banco
+        return repository.save(campanha);
+    }
+
+    public void deletar(Long id) {
+        repository.deleteById(id);
+    }
 }

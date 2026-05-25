@@ -18,7 +18,6 @@ public class RelatorioService {
     public RelatorioService(UsuarioRepository repository) { this.repository = repository; }
 
     public byte[] gerarRelatorioUsuarios() {
-        // try-with-resources: O Java se encarrega de fechar o stream (out) ao final, evitando vazamento de memória.
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             PdfWriter writer = new PdfWriter(out);
             PdfDocument pdf = new PdfDocument(writer);
@@ -27,13 +26,11 @@ public class RelatorioService {
             document.add(new Paragraph("Relatório de Usuários - Conecta à Vida").setFontSize(18).setBold());
             document.add(new Paragraph("Documento gerado em: " + java.time.LocalDateTime.now() + "\n"));
 
-            // Configura a largura de cada coluna na tabela do PDF.
             float[] columnWidths = {1, 3, 4, 1};
             Table table = new Table(UnitValue.createPercentArray(columnWidths)).useAllAvailableWidth();
             table.addHeaderCell("ID"); table.addHeaderCell("Nome");
             table.addHeaderCell("Email"); table.addHeaderCell("Idade");
 
-            // Busca do banco e joga direto no PDF.
             for (Usuario u : repository.findAll()) {
                 table.addCell(u.getId().toString());
                 table.addCell(u.getNome() != null ? u.getNome() : "-");
@@ -43,9 +40,8 @@ public class RelatorioService {
             document.add(table);
             document.close();
 
-            return out.toByteArray(); // Transforma o PDF gerado em bytes para envio.
+            return out.toByteArray();
         } catch (Exception e) {
-            // Se falhar, joga o erro para cima, para o Controller avisar o Frontend.
             throw new RuntimeException("Erro ao gerar o relatório em PDF", e);
         }
     }

@@ -13,17 +13,18 @@ import java.util.List;
 public class DashboardController {
 
     @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private AlertaRepository alertaRepository;
+    @Autowired private ComunicacaoRepository comunicacaoRepository;
 
     @GetMapping("/stats")
     public DashboardStatsDTO getStats() {
-        // Retorna DTOs populados com o total das tabelas usando '.count()'
-        return new DashboardStatsDTO(usuarioRepository.count(), alertaRepository.countByLidoFalse());
+        return new DashboardStatsDTO(
+                usuarioRepository.count(),
+                comunicacaoRepository.countByTipoAndLidoFalse("ALERTA")
+        );
     }
 
     @GetMapping("/chart")
     public List<ChartDataDTO> getChartData() {
-        // Retorna vazio temporariamente para não quebrar o layout do Frontend.
         return Collections.emptyList();
     }
 }

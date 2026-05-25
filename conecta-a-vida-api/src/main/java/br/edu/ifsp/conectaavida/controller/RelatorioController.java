@@ -16,7 +16,6 @@ public class RelatorioController {
     public ResponseEntity<byte[]> baixarRelatorioUsuarios() {
         byte[] pdf = relatorioService.gerarRelatorioUsuarios();
 
-        // Retorna o arquivo PDF dizendo ao navegador como exibi-lo (application/pdf).
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio_usuarios.pdf")
                 .contentType(MediaType.APPLICATION_PDF)

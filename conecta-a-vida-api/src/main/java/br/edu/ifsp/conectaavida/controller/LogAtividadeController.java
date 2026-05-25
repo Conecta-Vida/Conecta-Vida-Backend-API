@@ -2,7 +2,6 @@ package br.edu.ifsp.conectaavida.controller;
 
 import br.edu.ifsp.conectaavida.domain.LogAtividade;
 import br.edu.ifsp.conectaavida.repository.LogAtividadeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -11,7 +10,11 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class LogAtividadeController {
 
-    @Autowired private LogAtividadeRepository repository;
+    private final LogAtividadeRepository repository;
+
+    public LogAtividadeController(LogAtividadeRepository repository) {
+        this.repository = repository;
+    }
 
     @GetMapping("/recentes")
     public List<LogAtividade> listarRecentes() {

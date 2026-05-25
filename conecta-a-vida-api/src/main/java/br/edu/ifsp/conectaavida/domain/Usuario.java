@@ -8,14 +8,15 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Usuario {
 
-    // ATENÇÃO EQUIPE: ID como Integer por causa da tabela existente no Supabase.
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // ID atualizado para Long (bigint)
 
     @Column(nullable = false) private String nome;
 
-    // unique = true avisa ao banco para não aceitar dois usuários com o mesmo e-mail.
-    @Column(nullable = false, unique = true) private String email;
+    @Column(nullable = false, unique = true)
+    private String email;
+
     @Column(nullable = false) private String senha;
 
     private Integer idade;

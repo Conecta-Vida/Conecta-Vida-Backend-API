@@ -10,11 +10,18 @@ import java.time.LocalDateTime;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class LogAtividade {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) private String usuario;
+    // Relacionamento com a entidade Usuario atualizado
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
     @Column(nullable = false) private String acao;
 
-    @CreationTimestamp private LocalDateTime dataHora;
+    @CreationTimestamp
+    @Column(name = "data_hora", updatable = false)
+    private LocalDateTime dataHora;
 }

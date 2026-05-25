@@ -7,8 +7,6 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: O Index é a nossa página inicial (Dashboard). Ele faz chamadas simultâneas 
-// para a API usando Promise.all para carregar gráficos, estatísticas e logs de uma só vez.
 export default function Index() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -18,7 +16,6 @@ export default function Index() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        // Dispara as 3 requisições ao mesmo tempo para a tela carregar mais rápido
         const [resStats, resChart, resLogs] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getChartData(),
@@ -38,7 +35,6 @@ export default function Index() {
     carregarDados();
   }, []);
 
-  // LIMPEZA: Removemos referências mortas a vacinas e agendamentos que não existem mais na API
   const s = stats || { totalUsuarios: 0, alertasAtivos: 0 };
 
   return (
@@ -48,17 +44,14 @@ export default function Index() {
         <p className="text-slate-500 font-medium">Resumo em tempo real do ecossistema Conecta à Vida.</p>
       </div>
 
-      {/* CARDS DE MÉTRICAS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Usuários Cadastrados" value={loading ? "..." : s.totalUsuarios} trend="+4%" up={true} icon={<Users className="w-5 h-5 text-blue-600"/>} />
-        {/* PARA A EQUIPE: Estes valores (03 e 12) são visuais/estáticos temporariamente até criarmos o endpoint no backend */}
         <StatCard title="Campanhas Ativas" value={loading ? "..." : "03"} trend="Em andamento" up={true} icon={<Megaphone className="w-5 h-5 text-purple-600"/>} />
         <StatCard title="Alertas Ativos" value={loading ? "..." : String(s.alertasAtivos).padStart(2, '0')} trend="-1" up={false} icon={<Bell className="w-5 h-5 text-red-600"/>} />
         <StatCard title="Notícias Publicadas" value={loading ? "..." : "12"} trend="Informativos" up={true} icon={<Newspaper className="w-5 h-5 text-green-600"/>} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-7">
-        {/* GRÁFICO (RECHARTS) */}
         <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -91,7 +84,6 @@ export default function Index() {
           </CardContent>
         </Card>
 
-        {/* HISTÓRICO DE LOGS */}
         <Card className="lg:col-span-3 border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -103,15 +95,14 @@ export default function Index() {
               {logs.length > 0 ? logs.map((log) => (
                 <div key={log.id} className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600">
-                    {log.usuario ? log.usuario[0].toUpperCase() : "A"}
+                    {log.usuario?.nome ? log.usuario.nome[0].toUpperCase() : "U"}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-800">{log.usuario}</p>
+                    <p className="text-sm font-bold text-slate-800">{log.usuario?.nome || "Usuário"}</p>
                     <p className="text-xs text-slate-500">{log.acao}</p>
                   </div>
-                  {/* formatDistanceToNow transforma a data em "há 5 minutos" */}
                   <div className="text-[10px] font-bold text-slate-400">
-                    {formatDistanceToNow(new Date(log.dataHora), { addSuffix: true, locale: ptBR })}
+                    {log.dataHora ? formatDistanceToNow(new Date(log.dataHora), { addSuffix: true, locale: ptBR }) : ""}
                   </div>
                 </div>
               )) : <p className="text-center text-slate-400 py-10">Sem atividades recentes.</p>}
@@ -123,7 +114,6 @@ export default function Index() {
   );
 }
 
-// PARA A EQUIPE: Criamos este sub-componente isolado para não repetir código HTML 4 vezes lá em cima.
 function StatCard({ title, value, trend, up, icon }: { title: string, value: any, trend: string, up: boolean, icon: any }) {
   return (
     <Card className="border-none shadow-sm">

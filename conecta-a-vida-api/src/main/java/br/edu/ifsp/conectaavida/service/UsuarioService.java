@@ -22,9 +22,6 @@ public class UsuarioService {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
             br.readLine(); // Pula o cabeçalho do CSV
             String line;
-
-            // ATENÇÃO EQUIPE: Nós juntamos tudo em uma Lista e salvamos no final (Batch Insert).
-            // Fazer um 'save' dentro do loop causa gargalos extremos no banco.
             List<Usuario> usuariosBatch = new ArrayList<>();
 
             while ((line = br.readLine()) != null) {
@@ -40,7 +37,6 @@ public class UsuarioService {
                     usuariosBatch.add(u);
                 }
             }
-            // Salva dezenas/centenas de linhas de uma só vez!
             if (!usuariosBatch.isEmpty()) repository.saveAll(usuariosBatch);
         } catch (Exception e) {
             throw new RuntimeException("Falha ao processar o arquivo CSV", e);
@@ -48,14 +44,14 @@ public class UsuarioService {
     }
 
     public void exportarCsv(HttpServletResponse response) throws Exception {
-        // Prepara os cabeçalhos HTTP para o navegador entender que é um download de arquivo CSV.
         response.setContentType("text/csv; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=usuarios.csv");
 
         try (PrintWriter writer = response.getWriter()) {
-            writer.println("Nome;Email;Idade;Sexo;Localizacao");
+            writer.println("ID;Nome;Email;Idade;Sexo;Localizacao");
             for (Usuario u : repository.findAll()) {
-                writer.printf("%s;%s;%d;%s;%s\n", u.getNome(), u.getEmail(), u.getIdade(), u.getSexo(), u.getLocalizacao());
+                writer.printf("%d;%s;%s;%d;%s;%s\n",
+                        u.getId(), u.getNome(), u.getEmail(), u.getIdade(), u.getSexo(), u.getLocalizacao());
             }
         }
     }

@@ -6,10 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Campanha, campanhaService } from "../services/api";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: Tela que exibe 1 única campanha. A rota /campanhas/:id passa o ID 
-// que nós capturamos aqui através do hook `useParams()`.
 export default function CampanhaDetalhes() {
-  const { id } = useParams(); // Pega o número lá na URL
+  const { id } = useParams();
   const [campanha, setCampanha] = useState<Campanha | null>(null);
 
   useEffect(() => {
@@ -50,7 +48,6 @@ export default function CampanhaDetalhes() {
             <h3 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
               <Info className="w-5 h-5" /> Sobre a Ação
             </h3>
-            {/* whitespace-pre-wrap permite que os 'enters' que o usuário digitou no banco sejam mantidos na tela */}
             <p className="text-slate-700 text-lg leading-relaxed font-medium whitespace-pre-wrap">
               {campanha.descricao}
             </p>
@@ -70,7 +67,7 @@ export default function CampanhaDetalhes() {
               <div className="space-y-1">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cronograma</span>
                 <p className="font-bold text-slate-800 text-lg">
-                  {new Date(campanha.dataInicio).toLocaleDateString()} até {new Date(campanha.dataFim).toLocaleDateString()}
+                  {campanha.dataInicio ? new Date(campanha.dataInicio).toLocaleDateString() : ""} até {campanha.dataFim ? new Date(campanha.dataFim).toLocaleDateString() : ""}
                 </p>
               </div>
             </div>

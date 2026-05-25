@@ -1,6 +1,6 @@
 const API_URL = 'http://localhost:8080/api';
 
-// --- INTERFACES ---
+// --- INTERFACES ALINHADAS COM O NOVO BANCO ---
 
 export interface Usuario {
   id?: number;
@@ -16,19 +16,24 @@ export interface Campanha {
   id?: number;
   titulo: string;
   descricao: string;
-  dataInicio: string;
-  dataFim: string;
-  publicoAlvo: string;
-  status: 'Ativa' | 'Encerrada' | 'Agendada';
+  dataInicio: string; 
+  dataFim: string;    
+  publicoAlvo: string; 
+  status: 'Ativa' | 'Encerrada' | 'Agendada' | string;
+  categoria?: string;
+  linkimagem?: string;
+  localizacao?: string;
 }
 
 export interface Alerta {
   id?: number;
-  tipo: 'urgente' | 'aviso' | 'info';
+  tipo: string;        
+  categoria: 'urgente' | 'aviso' | 'info' | string; 
   titulo: string;
   descricao: string;
-  dataCriacao: string;
+  dataPostada: string; // Alinhado com o banco postgres
   lido: boolean;
+  localizacao?: string;
 }
 
 export interface UnidadeSaude {
@@ -44,16 +49,14 @@ export interface UnidadeSaude {
 
 export interface LogAtividade {
   id?: number;
-  usuario: string;
+  usuario: Usuario; // Alinhado: agora é um objeto completo do banco
   acao: string;
-  dataHora: string;
+  dataHora: string; 
 }
 
 export interface DashboardStats {
-  totalUsuarios: number; // Atualizado de totalPacientes para coincidir com o banco
-  vacinasAplicadas: number; 
-  alertasAtivos: number;
-  agendamentosHoje: number;
+  totalUsuarios: number; 
+  alertasAtivos: number;  
 }
 
 export interface ChartData {
@@ -61,7 +64,7 @@ export interface ChartData {
   quantidade: number;
 }
 
-// --- SERVIÇOS ---
+// --- SERVIÇOS DE CONSUMO ---
 
 export const usuarioService = {
   listarTodos: async (): Promise<Usuario[]> => {
@@ -133,12 +136,13 @@ export const dashboardService = {
 export const campanhaService = {
   listarTodas: async (): Promise<Campanha[]> => {
     const response = await fetch(`${API_URL}/campanhas`);
-    if (!response.ok) throw new Error('Erro ao buscar campanhas');
+    if (!response.ok) throw new Error('Erro ao buscar campaigns');
     return response.json();
   },
 
   buscarPorId: async (id: number): Promise<Campanha> => {
     const response = await fetch(`${API_URL}/campanhas/${id}`);
+    if (!response.ok) throw new Error('Erro ao buscar detalhes');
     return response.json();
   },
 
@@ -163,6 +167,7 @@ export const logService = {
 export const alertaService = {
   listarTodos: async (): Promise<Alerta[]> => {
     const response = await fetch(`${API_URL}/alertas`);
+    if (!response.ok) throw new Error('Erro ao buscar alertas');
     return response.json();
   },
 
@@ -174,6 +179,7 @@ export const alertaService = {
 export const unidadeSaudeService = {
   obterDados: async (): Promise<UnidadeSaude> => {
     const response = await fetch(`${API_URL}/unidade-saude`);
+    if (!response.ok) throw new Error('Erro ao buscar dados da unidade');
     return response.json();
   },
 

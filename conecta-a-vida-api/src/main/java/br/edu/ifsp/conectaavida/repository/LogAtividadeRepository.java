@@ -8,6 +8,6 @@ import java.util.List;
 @Repository
 public interface LogAtividadeRepository extends JpaRepository<LogAtividade, Long> {
 
-    // O "Top5" já faz o papel do comando LIMIT 5 no SQL.
+    // Limita o retorno para os 5 registos de atividade mais recentes
     List<LogAtividade> findTop5ByOrderByDataHoraDesc();
 }

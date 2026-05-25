@@ -7,8 +7,6 @@ import { Settings, Save, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { type UnidadeSaude, unidadeSaudeService } from "../services/api";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: Esta tela gerencia uma ÚNICA entidade no banco (A Unidade de Saúde atual).
-// Ao invés de criar várias unidades, o backend atualiza a linha de ID 1 repetidamente.
 export default function Configuracoes() {
   const [form, setForm] = useState<UnidadeSaude>({
     nome: "", endereco: "", telefone: "", email: "",
@@ -19,9 +17,9 @@ export default function Configuracoes() {
     const carregarDados = async () => {
       try {
         const dados = await unidadeSaudeService.obterDados();
-        if (dados) setForm(dados);
+        if (dados && dados.nome) setForm(dados);
       } catch (error) {
-        // Se a tabela estiver vazia na primeira vez, mantemos o formulário em branco
+        console.log("Tabela vazia ou erro ao carregar configurações iniciais.");
       }
     };
     carregarDados();
