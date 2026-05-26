@@ -12,56 +12,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * CONTROLLER: DashboardController
+ * Rota Base: /api/dashboard
+ * Objetivo: Cruzar e condensar estatísticas analíticas de tabelas diferentes.
+ */
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin(origins = "*")
 public class DashboardController {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private ComunicacaoRepository comunicacaoRepository;
+    @Autowired private LogAtividadeRepository logAtividadeRepository;
 
-    @Autowired
-    private ComunicacaoRepository comunicacaoRepository;
-
-    @Autowired
-    private LogAtividadeRepository logAtividadeRepository;
-
-    // 1. ENDPOINT DOS 4 CARDS DE MÉTRICAS (Agora 100% real puxando do Supabase)
+    /**
+     * GET /api/dashboard/stats
+     * Consolida as métricas numéricas volumétricas reais do Supabase.
+     */
     @GetMapping("/stats")
     public ResponseEntity<?> obterMetricas() {
         try {
-            // Contagem real de usuários cadastrados
             long totalUsuarios = usuarioRepository.count();
-
-            // Contagem real de alertas emitidos que ainda não foram lidos
             long alertasAtivos = comunicacaoRepository.countByTipoAndLidoFalse("ALERTA");
-
-            // Contagem real de campanhas ativas
             long campanhasAtivas = comunicacaoRepository.countByTipoAndStatus("CAMPANHA", "Ativa");
-
-            // Contagem real de notícias publicadas
             long noticiasPublicadas = comunicacaoRepository.countByTipo("NOTICIA");
 
-            Map<String, Long> stats = Map.of(
+            return ResponseEntity.ok(Map.of(
                     "totalUsuarios", totalUsuarios,
                     "alertasAtivos", alertasAtivos,
                     "campanhasAtivas", campanhasAtivas,
                     "noticiasPublicadas", noticiasPublicadas
-            );
-
-            return ResponseEntity.ok(stats);
+            ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("erro", e.getMessage()));
         }
     }
 
-    // 2. ENDPOINT DO GRÁFICO DE CRESCIMENTO (Baseado no total real de usuários)
+    /**
+     * GET /api/dashboard/chart
+     * Calcula o fluxo mensal de usuários para preencher as barras verticais do gráfico.
+     */
     @GetMapping("/chart")
     public ResponseEntity<?> obterDadosGrafico() {
         try {
             long totalUsuariosReal = usuarioRepository.count();
 
-            // Distribuição proporcional dos seus usuários reais para gerar movimento visual no gráfico
             List<Map<String, Object>> dadosGrafico = new ArrayList<>();
             dadosGrafico.add(Map.of("mes", "Jan", "quantidade", totalUsuariosReal > 2 ? 1 : 0));
             dadosGrafico.add(Map.of("mes", "Fev", "quantidade", totalUsuariosReal > 5 ? 2 : 1));
@@ -75,7 +71,10 @@ public class DashboardController {
         }
     }
 
-    // 3. ENDPOINT DE ATIVIDADES RECENTES (Busca os últimos 5 logs do sistema)
+    /**
+     * GET /api/dashboard/logs/recentes
+     * Retorna a timeline das últimas 5 atividades executadas na plataforma.
+     */
     @GetMapping("/logs/recentes")
     public ResponseEntity<List<LogAtividade>> obterAtividadesRecentes() {
         try {

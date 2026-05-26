@@ -5,6 +5,10 @@ import br.edu.ifsp.conectaavida.repository.InstituicaoSaudeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * CONTROLLER: UnidadeSaudeController
+ * Rota Base: /api/unidade-saude
+ */
 @RestController
 @RequestMapping("/api/unidade-saude")
 @CrossOrigin(origins = "*")
@@ -20,6 +24,7 @@ public class UnidadeSaudeController {
     @PostMapping
     public InstituicaoSaude salvar(@RequestBody InstituicaoSaude dados) {
         dados.setTipoInstituicao("UNIDADE");
+        // Verifica se a unidade central já existe na base de dados para fazer uma substituição (overwrite) mantendo o mesmo ID
         repository.findTopByTipoInstituicaoOrderByIdAsc("UNIDADE").ifPresent(u -> dados.setId(u.getId()));
         return repository.save(dados);
     }

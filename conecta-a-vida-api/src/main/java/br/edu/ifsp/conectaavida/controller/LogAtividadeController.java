@@ -5,6 +5,10 @@ import br.edu.ifsp.conectaavida.repository.LogAtividadeRepository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+/**
+ * CONTROLLER: LogAtividadeController
+ * Rota Base: /api/logs
+ */
 @RestController
 @RequestMapping("/api/logs")
 @CrossOrigin(origins = "*")

@@ -7,6 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+/**
+ * CONTROLLER: NoticiaController
+ * Rota Base: /api/noticias
+ */
 @RestController
 @RequestMapping("/api/noticias")
 @CrossOrigin(origins = "*")
@@ -26,7 +30,7 @@ public class NoticiaController {
 
     @PostMapping
     public Comunicacao criar(@RequestBody Comunicacao comunicacao) {
-        comunicacao.setTipo("NOTICIA");
+        comunicacao.setTipo("NOTICIA"); // Vincula rigidamente o tipo de postagem
         return repository.save(comunicacao);
     }
 
@@ -48,6 +52,6 @@ public class NoticiaController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         if (!repository.existsById(id)) return ResponseEntity.notFound().build();
         repository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

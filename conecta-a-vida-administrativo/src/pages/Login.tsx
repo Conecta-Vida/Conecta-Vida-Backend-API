@@ -1,110 +1,99 @@
 import { useState } from "react";
-import { Mail, Lock, ShieldAlert, Loader2, HeartPulse } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { HeartPulse, Lock, Mail, Loader2 } from "lucide-react";
 import { authService } from "../services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function Login() {
+  const navigate = useNavigate(); // Hook para redirecionar o usuário de página
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Estado para animação de carregamento do botão
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErro(null);
-    setLoading(true);
+    e.preventDefault(); // Impede o recarregamento padrão da página ao enviar o formulário
+    
+    if (!email || !senha) {
+      toast.warning("Por favor, preencha todos os campos.");
+      return;
+    }
 
+    setLoading(true);
     try {
-      const adminLogado = await authService.login(email, senha);
+      // Consome o serviço de autenticação integrado à API Spring Boot
+      const usuarioLogado = await authService.login(email, senha);
       
-      // Salva a sessão do administrador localmente no navegador
-      localStorage.setItem("@conecta:admin", JSON.stringify(adminLogado));
+      // Armazena a sessão do administrador em formato string no LocalStorage da máquina
+      localStorage.setItem("@conecta:admin", JSON.stringify(usuarioLogado));
       
-      // Redireciona para o Dashboard principal do sistema
-      window.location.href = "/";
-    } catch (err: any) {
-      // Captura a mensagem exata do erro ("Você não tem credencial liberada." ou "Credenciais incorretas.")
-      setErro(err.message);
+      toast.success(`Bem-vindo de volta, ${usuarioLogado.nome}!`);
+      navigate("/"); // Redireciona imediatamente para a home (Dashboard)
+    } catch (error: any) {
+      // Captura a mensagem customizada enviada pelo Spring Boot (Ex: "Você não tem credencial liberada")
+      toast.error(error.message || "Erro ao tentar realizar o login.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 p-4">
-      <Card className="w-full max-w-md border-none shadow-xl bg-white overflow-hidden">
-        {/* TOPO COM IDENTIDADE VISUAL */}
-        <CardHeader className="bg-blue-600 text-white text-center py-8">
-          <div className="flex justify-center mb-2">
-            <div className="p-3 bg-white/10 rounded-2xl">
-              <HeartPulse className="w-8 h-8 text-white animate-pulse" />
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+        {/* LOGO E TÍTULO */}
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="rounded-2xl bg-blue-600 p-3 text-white shadow-md shadow-blue-200">
+            <HeartPulse className="h-8 w-8 animate-pulse" />
           </div>
-          <CardTitle className="text-2xl font-black tracking-tight text-white">Conecta Admin</CardTitle>
-          <p className="text-blue-100 text-xs mt-1">Painel Restrito de Gestão de Saúde Coletiva</p>
-        </CardHeader>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Conecta à Vida</h1>
+          <p className="text-sm text-slate-500 font-medium">Painel Administrativo de Saúde Pública</p>
+        </div>
 
-        <CardContent className="p-6 pt-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            
-            {/* INPUT DE E-MAIL */}
-            <div className="space-y-1.5">
-              <Label className="text-slate-700 font-bold flex items-center gap-1.5">
-                <Mail className="w-4 h-4 text-slate-400" /> E-mail Institucional
-              </Label>
-              <Input 
-                type="email" 
-                required 
-                placeholder="seu-email@conectavida.com"
+        {/* FORMULÁRIO */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="font-bold text-slate-700">E-mail Corporativo</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input
+                type="email"
+                placeholder="nome@sistema.com"
+                className="pl-10 bg-slate-50/50 focus-visible:ring-blue-600"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-slate-50 border-slate-200 h-11 focus-visible:ring-blue-600"
               />
             </div>
+          </div>
 
-            {/* INPUT DE SENHA */}
-            <div className="space-y-1.5">
-              <Label className="text-slate-700 font-bold flex items-center gap-1.5">
-                <Lock className="w-4 h-4 text-slate-400" /> Senha de Acesso
-              </Label>
-              <Input 
-                type="password" 
-                required 
+          <div className="space-y-1.5">
+            <Label className="font-bold text-slate-700">Senha de Acesso</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input
+                type="password"
                 placeholder="••••••••"
+                className="pl-10 bg-slate-50/50 focus-visible:ring-blue-600"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="bg-slate-50 border-slate-200 h-11 focus-visible:ring-blue-600"
               />
             </div>
+          </div>
 
-            {/* MENSAGEM DE ERRO DINÂMICA (Aparece em caso de falha ou falta de credencial) */}
-            {erro && (
-              <div className="flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-semibold animate-in fade-in duration-200">
-                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-                <span>{erro}</span>
-              </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 font-bold h-11 text-white hover:bg-blue-700 shadow shadow-blue-100"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Autenticando...</span>
+            ) : (
+              "Entrar no Sistema"
             )}
-
-            {/* BOTÃO ENTRAR */}
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 shadow-md transition-all active:scale-[0.99] mt-2"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2 justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin" /> A autenticar...
-                </span>
-              ) : (
-                "Aceder ao Painel"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

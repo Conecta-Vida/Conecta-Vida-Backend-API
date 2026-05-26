@@ -1,23 +1,18 @@
 import { useEffect, useState } from "react";
-import { Users, AlertTriangle, Megaphone, Newspaper, ArrowUpRight, Activity, Loader2 } from "lucide-react";
+import { Users, AlertTriangle, Megaphone, Newspaper, Activity, Loader2 } from "lucide-react";
 import { dashboardService, logService, type DashboardStats, type ChartData, type LogAtividade } from "../services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Index() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsuarios: 0,
-    alertasAtivos: 0,
-    campanhasAtivas: 0,
-    noticiasPublicadas: 0
-  });
+  const [stats, setStats] = useState<DashboardStats>({ totalUsuarios: 0, alertasAtivos: 0, campanhasAtivas: 0, noticiasPublicadas: 0 });
   const [grafico, setGrafico] = useState<ChartData[]>([]);
   const [logs, setLogs] = useState<LogAtividade[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const carregarDadosDashboard = async () => {
+    const carregarDashboard = async () => {
       try {
-        // Dispara as requisições em paralelo para máxima performance
+        // PERFORMANCE: Promise.all dispara as 3 requisições HTTP juntas em paralelo, deixando a tela muito mais rápida
         const [dadosStats, dadosGrafico, dadosLogs] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getChartData(),
@@ -28,13 +23,13 @@ export default function Index() {
         if (dadosGrafico) setGrafico(dadosGrafico);
         if (dadosLogs) setLogs(dadosLogs);
       } catch (error) {
-        console.error("Erro ao alimentar o painel com dados reais:", error);
+        console.error("Erro ao carregar os dados do painel:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    carregarDadosDashboard();
+    carregarDashboard();
   }, []);
 
   if (loading) {
@@ -47,15 +42,13 @@ export default function Index() {
 
   return (
     <div className="space-y-8 pb-10">
-      {/* SEÇÃO DO CABEÇALHO */}
       <div>
         <h1 className="text-3xl font-black tracking-tight text-slate-900">Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Visão geral e indicadores do ecossistema Conecta à Vida.</p>
+        <p className="text-slate-500 text-sm mt-1">Indicadores consolidados em tempo real do ecossistema Conecta à Vida.</p>
       </div>
 
-      {/* QUADRANTE DE METRICAS (4 CARDS) */}
+      {/* BLOCOS SUPERIORES (MÉTRICAS) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* CARD 1: USUÁRIOS */}
         <Card className="border-none shadow-sm bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Usuários Cadastrados</CardTitle>
@@ -63,11 +56,10 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-slate-900">{stats.totalUsuarios}</div>
-            <p className="text-xs text-blue-600 font-medium mt-1 flex items-center gap-0.5">Comunidade ativa no Supabase</p>
+            <p className="text-xs text-blue-600 font-medium mt-1">Cidadãos integrados na base</p>
           </CardContent>
         </Card>
 
-        {/* CARD 2: ALERTAS ATIVOS */}
         <Card className="border-none shadow-sm bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Alertas Ativos</CardTitle>
@@ -75,11 +67,10 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-slate-900">{stats.alertasAtivos}</div>
-            <p className="text-xs text-red-600 font-medium mt-1">Notificações críticas emitidas</p>
+            <p className="text-xs text-red-600 font-medium mt-1">Avisos urgentes em aberto</p>
           </CardContent>
         </Card>
 
-        {/* CARD 3: CAMPANHAS */}
         <Card className="border-none shadow-sm bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Campanhas Ativas</CardTitle>
@@ -87,11 +78,10 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-slate-900">{stats.campanhasAtivas}</div>
-            <p className="text-xs text-emerald-600 font-medium mt-1">Ações de saúde em andamento</p>
+            <p className="text-xs text-emerald-600 font-medium mt-1">Mutirões públicos em andamento</p>
           </CardContent>
         </Card>
 
-        {/* CARD 4: NOTÍCIAS */}
         <Card className="border-none shadow-sm bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Notícias Publicadas</CardTitle>
@@ -99,49 +89,40 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-slate-900">{stats.noticiasPublicadas}</div>
-            <p className="text-xs text-amber-600 font-medium mt-1">Informativos no feed do app</p>
+            <p className="text-xs text-amber-600 font-medium mt-1">Informativos ativos no feed</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* BLOCOS INFERIORES: GRÁFICO E ATIVIDADES */}
+      {/* BLOCOS GRÁFICO E TIMELINE */}
       <div className="grid gap-6 md:grid-cols-7">
-        
-        {/* DESIGN DO GRÁFICO DE CRESCIMENTO */}
         <Card className="md:col-span-4 border-none shadow-sm bg-white">
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-800">Crescimento da Plataforma</CardTitle>
-            <p className="text-xs text-slate-400">Evolução do volume de usuários nos últimos meses</p>
+            <p className="text-xs text-slate-400">Volume histórico de adesão de usuários</p>
           </CardHeader>
           <CardContent className="h-[240px] flex items-end justify-between gap-2 pt-4">
             {grafico.map((item, index) => (
               <div key={index} className="flex-1 flex flex-col items-center gap-2 group">
-                {/* Barra do gráfico proporcional */}
                 <div 
                   className="w-full bg-blue-600/90 rounded-t-md group-hover:bg-blue-600 transition-all duration-300 relative"
-                  style={{ height: `${Math.max((item.quantidade / (stats.totalUsuarios || 1)) * 180, 15)}px` }}
+                  style={{ height: `${Math.max((item.quantidade / (stats.totalUsuarios || 1)) * 180, 20)}px` }}
                 >
-                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100 px-1 rounded">
+                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-700 bg-slate-100 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                     {item.quantidade}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-tight">{item.mes}</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase">{item.mes}</span>
               </div>
             ))}
-            {grafico.length === 0 && (
-              <div className="w-full text-center text-sm text-slate-400 italic pb-20">
-                Nenhum fluxo de novos usuários registrado.
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* LISTA DE ATIVIDADE RECENTE */}
         <Card className="md:col-span-3 border-none shadow-sm bg-white">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-bold text-slate-800">Atividade Recente</CardTitle>
-              <p className="text-xs text-slate-400">Logs de ações recentes executadas</p>
+              <p className="text-xs text-slate-400">Trilha de auditoria em tempo real</p>
             </div>
             <Activity className="w-4 h-4 text-slate-400" />
           </CardHeader>
@@ -153,19 +134,16 @@ export default function Index() {
                   <div className="space-y-0.5">
                     <p className="text-xs font-bold text-slate-800">{log.usuario?.nome || "Sistema"}</p>
                     <p className="text-xs text-slate-500 leading-tight">{log.acao}</p>
-                    <p className="text-[10px] text-slate-400">{new Date(log.dataHora).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-slate-400">{new Date(log.dataHora).toLocaleString()}</p>
                   </div>
                 </div>
               ))}
               {logs.length === 0 && (
-                <div className="text-center py-12 text-sm text-slate-400 italic">
-                  Sem atividades recentes.
-                </div>
+                <div className="text-center py-12 text-sm text-slate-400 italic">Sem atividades recentes gravadas.</div>
               )}
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

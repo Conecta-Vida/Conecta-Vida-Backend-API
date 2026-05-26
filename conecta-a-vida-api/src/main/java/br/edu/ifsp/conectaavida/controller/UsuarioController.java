@@ -10,14 +10,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
+/**
+ * CONTROLLER: UsuarioController
+ * Rota Base: /api/usuarios
+ */
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*") // Permite a comunicação direta com o React
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     private final UsuarioRepository repository;
     private final UsuarioService service;
 
+    // Injeção de Dependência recomendada via Construtor
     public UsuarioController(UsuarioRepository repository, UsuarioService service) {
         this.repository = repository;
         this.service = service;
@@ -59,7 +64,7 @@ public class UsuarioController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         if (!repository.existsById(id)) return ResponseEntity.notFound().build();
         repository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content (Sem corpo de resposta)
     }
 
     @GetMapping("/exportar-csv")

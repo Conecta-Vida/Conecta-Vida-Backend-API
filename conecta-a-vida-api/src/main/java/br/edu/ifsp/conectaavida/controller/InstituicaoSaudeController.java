@@ -5,9 +5,12 @@ import br.edu.ifsp.conectaavida.repository.InstituicaoSaudeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
+/**
+ * CONTROLLER: InstituicaoSaudeController
+ * Rota Base: /api/instituicoes
+ */
 @RestController
 @RequestMapping("/api/instituicoes")
 @CrossOrigin(origins = "*")
@@ -16,19 +19,16 @@ public class InstituicaoSaudeController {
     @Autowired
     private InstituicaoSaudeRepository repository;
 
-    // LISTAR TODAS AS INSTITUIÇÕES
     @GetMapping
     public List<InstituicaoSaude> listarTodas() {
         return repository.findAll();
     }
 
-    // CADASTRAR NOVA INSTITUIÇÃO
     @PostMapping
     public InstituicaoSaude cadastrar(@RequestBody InstituicaoSaude instituicao) {
         return repository.save(instituicao);
     }
 
-    // ATUALIZAR DADOS DA INSTITUIÇÃO
     @PutMapping("/{id}")
     public ResponseEntity<InstituicaoSaude> atualizar(@PathVariable Long id, @RequestBody InstituicaoSaude novosDados) {
         return repository.findById(id).map(instituicao -> {
@@ -45,12 +45,9 @@ public class InstituicaoSaudeController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // REMOVER INSTITUIÇÃO
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
         repository.deleteById(id);
         return ResponseEntity.ok().build();
     }
