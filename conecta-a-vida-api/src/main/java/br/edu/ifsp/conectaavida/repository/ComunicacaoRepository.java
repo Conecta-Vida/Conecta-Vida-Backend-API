@@ -8,12 +8,13 @@ import java.util.List;
 @Repository
 public interface ComunicacaoRepository extends JpaRepository<Comunicacao, Long> {
 
-    // Procura por tipo (ex: devolve apenas as que são 'NOTICIA')
     List<Comunicacao> findByTipo(String tipo);
 
-    // Procura alertas que ainda não foram lidos, ordenando pelos mais recentes
     List<Comunicacao> findByTipoAndLidoFalseOrderByDataPostadaDesc(String tipo);
 
-    // Conta quantos registos ativos existem de um determinado tipo (usado no Dashboard)
     long countByTipoAndLidoFalse(String tipo);
+
+    // === ADICIONE ESTAS DUAS LINHAS ABAIXO ===
+    long countByTipo(String tipo); // Usado para contar todas as notícias
+    long countByTipoAndStatus(String tipo, String status); // Usado para contar campanhas com status 'Ativa'
 }

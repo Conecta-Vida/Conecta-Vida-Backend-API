@@ -18,6 +18,14 @@ public class AlertaController {
         return repository.findByTipoAndLidoFalseOrderByDataPostadaDesc("ALERTA");
     }
 
+    // === ADICIONE ESTE MÉTODO ABAIXO ===
+    @PostMapping
+    public Comunicacao criar(@RequestBody Comunicacao alerta) {
+        alerta.setTipo("ALERTA"); // Força o tipo correto de acordo com a sua tabela
+        alerta.setLido(false);    // Garante que nasce ativo
+        return repository.save(alerta);
+    }
+
     @PutMapping("/{id}/lido")
     public void marcarLido(@PathVariable Long id) {
         repository.findById(id).ifPresent(alerta -> {

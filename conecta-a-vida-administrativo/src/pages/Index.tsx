@@ -16,6 +16,7 @@ export default function Index() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        // Dispara as requisições em paralelo para otimizar o carregamento
         const [resStats, resChart, resLogs] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getChartData(),
@@ -35,7 +36,8 @@ export default function Index() {
     carregarDados();
   }, []);
 
-  const s = stats || { totalUsuarios: 0, alertasAtivos: 0 };
+  // Fornece um fallback com valores zerados para evitar erros de renderização enquanto carrega
+  const s = stats || { totalUsuarios: 0, alertasAtivos: 0, campanhasAtivas: 0, noticiasPublicadas: 0 };
 
   return (
     <div className="space-y-8 pb-10">
@@ -44,14 +46,40 @@ export default function Index() {
         <p className="text-slate-500 font-medium">Resumo em tempo real do ecossistema Conecta à Vida.</p>
       </div>
 
+      {/* CARDS DE MÉTRICAS COMPLEMENTARMENTE DINÂMICOS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Usuários Cadastrados" value={loading ? "..." : s.totalUsuarios} trend="+4%" up={true} icon={<Users className="w-5 h-5 text-blue-600"/>} />
-        <StatCard title="Campanhas Ativas" value={loading ? "..." : "03"} trend="Em andamento" up={true} icon={<Megaphone className="w-5 h-5 text-purple-600"/>} />
-        <StatCard title="Alertas Ativos" value={loading ? "..." : String(s.alertasAtivos).padStart(2, '0')} trend="-1" up={false} icon={<Bell className="w-5 h-5 text-red-600"/>} />
-        <StatCard title="Notícias Publicadas" value={loading ? "..." : "12"} trend="Informativos" up={true} icon={<Newspaper className="w-5 h-5 text-green-600"/>} />
+        <StatCard 
+          title="Usuários Cadastrados" 
+          value={loading ? "..." : s.totalUsuarios} 
+          trend="+4%" 
+          up={true} 
+          icon={<Users className="w-5 h-5 text-blue-600"/>} 
+        />
+        <StatCard 
+          title="Campanhas Ativas" 
+          value={loading ? "..." : String(s.campanhasAtivas).padStart(2, '0')} 
+          trend="Em andamento" 
+          up={true} 
+          icon={<Megaphone className="w-5 h-5 text-purple-600"/>} 
+        />
+        <StatCard 
+          title="Alertas Ativos" 
+          value={loading ? "..." : String(s.alertasAtivos).padStart(2, '0')} 
+          trend="-1" 
+          up={false} 
+          icon={<Bell className="w-5 h-5 text-red-600"/>} 
+        />
+        <StatCard 
+          title="Notícias Publicadas" 
+          value={loading ? "..." : String(s.noticiasPublicadas).padStart(2, '0')} 
+          trend="Informativos" 
+          up={true} 
+          icon={<Newspaper className="w-5 h-5 text-green-600"/>} 
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-7">
+        {/* GRÁFICO DE CRESCIMENTO */}
         <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -84,6 +112,7 @@ export default function Index() {
           </CardContent>
         </Card>
 
+        {/* FEED DE HISTÓRICO DE LOGS DE ATIVIDADE */}
         <Card className="lg:col-span-3 border-none shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -114,6 +143,7 @@ export default function Index() {
   );
 }
 
+// Sub-componente utilitário para estruturação visual uniforme dos Cards de métrica
 function StatCard({ title, value, trend, up, icon }: { title: string, value: any, trend: string, up: boolean, icon: any }) {
   return (
     <Card className="border-none shadow-sm">

@@ -17,9 +17,12 @@ public class DashboardController {
 
     @GetMapping("/stats")
     public DashboardStatsDTO getStats() {
+        // === MODIFIQUE O RETORNO PARA ENVIAR AS 4 MÉTRICAS DO BANCO ===
         return new DashboardStatsDTO(
                 usuarioRepository.count(),
-                comunicacaoRepository.countByTipoAndLidoFalse("ALERTA")
+                comunicacaoRepository.countByTipoAndLidoFalse("ALERTA"),
+                comunicacaoRepository.countByTipoAndStatus("CAMPANHA", "Ativa"), // Conta campanhas em andamento
+                comunicacaoRepository.countByTipo("NOTICIA") // Conta todas as notícias cadastradas
         );
     }
 

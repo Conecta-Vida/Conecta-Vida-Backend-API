@@ -1,6 +1,19 @@
 const API_URL = 'http://localhost:8080/api';
 
-// --- INTERFACES ALINHADAS COM O NOVO BANCO ---
+// --- INTERFACES ALINHADAS COM O BANCO DE DADOS ---
+
+export interface InstituicaoSaude {
+  id?: number;
+  tipoInstituicao: string; // 'ORGAO' ou 'UNIDADE'
+  nome: string;
+  email?: string;
+  telefone?: string;
+  linksite?: string;
+  endereco?: string;
+  horarioSegSex?: string;
+  horarioSabado?: string;
+  horarioDomingo?: string;
+}
 
 export interface Usuario {
   id?: number;
@@ -20,9 +33,10 @@ export interface Campanha {
   dataFim: string;    
   publicoAlvo: string; 
   status: 'Ativa' | 'Encerrada' | 'Agendada' | string;
-  categoria?: string;
-  linkimagem?: string;
-  localizacao?: string;
+  categoria?: string;      
+  linkimagem?: string;     
+  localizacao?: string;    
+  instituicao?: InstituicaoSaude; 
 }
 
 export interface Alerta {
@@ -31,32 +45,23 @@ export interface Alerta {
   categoria: 'urgente' | 'aviso' | 'info' | string; 
   titulo: string;
   descricao: string;
-  dataPostada: string; // Alinhado com o banco postgres
+  dataPostada: string; 
   lido: boolean;
   localizacao?: string;
 }
 
-export interface UnidadeSaude {
-  id?: number;
-  nome: string;
-  endereco: string;
-  telefone: string;
-  email: string;
-  horarioSegSex: string;
-  horarioSabado: string;
-  horarioDomingo: string;
-}
-
 export interface LogAtividade {
   id?: number;
-  usuario: Usuario; // Alinhado: agora é um objeto completo do banco
+  usuario: Usuario; 
   acao: string;
   dataHora: string; 
 }
 
 export interface DashboardStats {
   totalUsuarios: number; 
-  alertasAtivos: number;  
+  alertasAtivos: number;
+  campanhasAtivas: number;    
+  noticiasPublicadas: number; 
 }
 
 export interface ChartData {
@@ -64,7 +69,7 @@ export interface ChartData {
   quantidade: number;
 }
 
-// --- SERVIÇOS DE CONSUMO ---
+// --- SERVIÇOS DE CONSUMO DA API REST ---
 
 export const usuarioService = {
   listarTodos: async (): Promise<Usuario[]> => {
@@ -72,14 +77,12 @@ export const usuarioService = {
     if (!response.ok) throw new Error('Erro ao buscar usuários');
     return response.json();
   },
-
   buscarPorEmail: async (email: string): Promise<Usuario | null> => {
     const response = await fetch(`${API_URL}/usuarios/email/${email}`);
     if (response.status === 404) return null;
     if (!response.ok) throw new Error('Erro na busca');
     return response.json();
   },
-
   cadastrar: async (usuario: Usuario): Promise<Usuario> => {
     const response = await fetch(`${API_URL}/usuarios`, {
       method: 'POST',
@@ -88,7 +91,6 @@ export const usuarioService = {
     });
     return response.json();
   },
-
   atualizar: async (id: number, usuario: Usuario): Promise<Usuario> => {
     const response = await fetch(`${API_URL}/usuarios/${id}`, {
       method: 'PUT',
@@ -97,24 +99,19 @@ export const usuarioService = {
     });
     return response.json();
   },
-
   deletar: async (id: number): Promise<void> => {
     await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
   },
-
   exportarCsv: () => {
     window.open(`${API_URL}/usuarios/exportar-csv`, '_blank');
   },
-
   importarCsv: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-
     const response = await fetch(`${API_URL}/usuarios/importar-csv`, {
       method: 'POST',
       body: formData,
     });
-
     if (!response.ok) throw new Error('Erro ao importar ficheiro CSV');
     return response.text();
   }
@@ -136,22 +133,44 @@ export const dashboardService = {
 export const campanhaService = {
   listarTodas: async (): Promise<Campanha[]> => {
     const response = await fetch(`${API_URL}/campanhas`);
-    if (!response.ok) throw new Error('Erro ao buscar campaigns');
+    if (!response.ok) throw new Error('Erro ao buscar campanhas');
     return response.json();
   },
-
   buscarPorId: async (id: number): Promise<Campanha> => {
     const response = await fetch(`${API_URL}/campanhas/${id}`);
-    if (!response.ok) throw new Error('Erro ao buscar detalhes');
+    if (!response.ok) throw new Error('Erro ao buscar detalhes da campanha');
     return response.json();
   },
-
   cadastrar: async (campanha: Campanha): Promise<Campanha> => {
     const response = await fetch(`${API_URL}/campanhas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(campanha)
     });
+    return response.json();
+  },
+  atualizar: async (id: number, campanha: Campanha): Promise<Campanha> => {
+    const response = await fetch(`${API_URL}/campanhas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(campanha)
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar campanha');
+    return response.json();
+  },
+  deletar: async (id: number): Promise<void> => {
+    await fetch(`${API_URL}/campanhas/${id}`, { method: 'DELETE' });
+  }
+};
+
+export const noticiaService = {
+  cadastrar: async (noticia: any): Promise<any> => {
+    const response = await fetch(`${API_URL}/noticias`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(noticia)
+    });
+    if (!response.ok) throw new Error('Erro ao cadastrar notícia');
     return response.json();
   }
 };
@@ -170,20 +189,27 @@ export const alertaService = {
     if (!response.ok) throw new Error('Erro ao buscar alertas');
     return response.json();
   },
-
   marcarComoLido: async (id: number): Promise<void> => {
     await fetch(`${API_URL}/alertas/${id}/lido`, { method: 'PUT' });
+  },
+  cadastrar: async (alerta: Alerta): Promise<Alerta> => {
+    const response = await fetch(`${API_URL}/alertas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alerta)
+    });
+    if (!response.ok) throw new Error('Erro ao emitir alerta');
+    return response.json();
   }
 };
 
 export const unidadeSaudeService = {
-  obterDados: async (): Promise<UnidadeSaude> => {
+  obterDados: async (): Promise<InstituicaoSaude> => {
     const response = await fetch(`${API_URL}/unidade-saude`);
     if (!response.ok) throw new Error('Erro ao buscar dados da unidade');
     return response.json();
   },
-
-  salvar: async (dados: UnidadeSaude): Promise<UnidadeSaude> => {
+  salvar: async (dados: Campanha): Promise<InstituicaoSaude> => {
     const response = await fetch(`${API_URL}/unidade-saude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -197,10 +223,8 @@ export const relatorioService = {
   downloadUsuariosPdf: async (): Promise<void> => {
     const response = await fetch(`${API_URL}/relatorios/usuarios`);
     if (!response.ok) throw new Error('Erro ao gerar relatório PDF');
-    
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    
     const a = document.createElement('a');
     a.href = url;
     a.download = `relatorio_usuarios_${new Date().getTime()}.pdf`;

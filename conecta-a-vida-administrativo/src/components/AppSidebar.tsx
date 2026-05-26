@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 // PARA A EQUIPE: Se precisarem adicionar um novo link no menu, basta colocar aqui neste array!
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Utilizadores", url: "/usuarios", icon: Users },
+  { title: "Usuarios", url: "/usuarios", icon: Users },
   { title: "Campanhas", url: "/campanhas", icon: Megaphone },
   { title: "Alertas", url: "/alertas", icon: Bell },
   { title: "Urgência", url: "/alerta-urgente", icon: ShieldAlert },
