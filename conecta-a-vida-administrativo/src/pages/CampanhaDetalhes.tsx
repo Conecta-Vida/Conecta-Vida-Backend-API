@@ -1,80 +1,84 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, Users, Calendar, Target, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
+import { Megaphone, ArrowLeft, Loader2, Save, Trash2 } from "lucide-react";
+import { campanhaService, type Campanha } from "../services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type Campanha, campanhaService } from "../services/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: Tela que exibe 1 única campanha. A rota /campanhas/:id passa o ID 
-// que nós capturamos aqui através do hook `useParams()`.
 export default function CampanhaDetalhes() {
-  const { id } = useParams(); // Pega o número lá na URL
+  const { id } = useParams(); // Captura o ID vindo diretamente na URL (/campanhas/5)
+  const navigate = useNavigate();
   const [campanha, setCampanha] = useState<Campanha | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      campanhaService.buscarPorId(Number(id))
-        .then(setCampanha)
-        .catch(() => toast.error("Campanha não localizada."));
-    }
+    if (!id) return;
+    campanhaService.buscarPorId(Number(id))
+      .then(setCampanha)
+      .catch(() => toast.error("Campanha não localizada."))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (!campanha) return <div className="p-10 flex justify-center text-slate-400 font-bold">A carregar dados da campanha...</div>;
+  const handleSalvar = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!campanha || !id) return;
+    const f = new FormData(e.currentTarget);
+    const atualizada: Campanha = {
+      ...campanha,
+      titulo: f.get("titulo") as string,
+      descricao: f.get("descricao") as string,
+      status: f.get("status") as string,
+    };
+
+    try {
+      await campanhaService.atualizar(Number(id), atualizada);
+      toast.success("Alterações salvas!");
+      navigate("/campanhas");
+    } catch {
+      toast.error("Erro ao salvar.");
+    }
+  };
+
+  const handleDeletar = async () => {
+    if (!id || !confirm("Remover esta campanha definitivamente do feed público?")) return;
+    try {
+      await campanhaService.deletar(Number(id));
+      toast.success("Campanha apagada do Supabase.");
+      navigate("/campanhas");
+    } catch {
+      toast.error("Erro ao deletar.");
+    }
+  };
+
+  if (loading) return <div className="flex h-[50vh] items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>;
+  if (!campanha) return <div className="text-center py-20 text-slate-400 font-bold">Nenhum dado encontrado.</div>;
 
   return (
-    <div className="space-y-8 pb-10 animate-in fade-in duration-500 max-w-5xl">
-      <div className="flex items-center gap-4">
-        <Link to="/campanhas">
-          <Button variant="outline" size="icon" className="rounded-full shadow-sm hover:bg-white"><ChevronLeft className="w-4 h-4" /></Button>
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{campanha.titulo}</h1>
-            <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
-              {campanha.status}
-            </span>
-          </div>
-          <p className="text-slate-500 font-medium">Detalhes e orientações desta ação comunitária.</p>
-        </div>
-      </div>
-
-      <Card className="border-none shadow-sm">
-        <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="w-5 h-5 text-blue-600" /> Informações da Campanha
-          </CardTitle>
+    <div className="space-y-6 max-w-3xl mx-auto pb-10">
+      <Button variant="ghost" size="sm" onClick={() => navigate("/campanhas")} className="gap-1 font-bold text-slate-500 hover:text-slate-900"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
+      
+      <Card className="border-none shadow-sm bg-white overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between">
+          <CardTitle className="text-lg font-black flex items-center gap-1.5"><Megaphone className="w-5 h-5 text-blue-600" /> Detalhes operacionais</CardTitle>
+          <Button variant="destructive" size="sm" onClick={handleDeletar} className="font-bold gap-1"><Trash2 className="w-4 h-4" /> Encerrar</Button>
         </CardHeader>
-        <CardContent className="space-y-8 pt-6">
-          <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
-            <h3 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
-              <Info className="w-5 h-5" /> Sobre a Ação
-            </h3>
-            {/* whitespace-pre-wrap permite que os 'enters' que o usuário digitou no banco sejam mantidos na tela */}
-            <p className="text-slate-700 text-lg leading-relaxed font-medium whitespace-pre-wrap">
-              {campanha.descricao}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-              <div className="p-3 bg-white rounded-lg shadow-sm"><Users className="w-6 h-6 text-blue-500" /></div>
-              <div className="space-y-1">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Público-Alvo</span>
-                <p className="font-bold text-slate-800 text-lg">{campanha.publicoAlvo}</p>
-              </div>
+        <CardContent className="p-6">
+          <form onSubmit={handleSalvar} className="space-y-4">
+            <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Título da Campanha</Label><Input name="titulo" defaultValue={campanha.titulo} required /></div>
+            <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Instruções Médicas / Descrição</Label><textarea name="descricao" defaultValue={campanha.descricao} required className="w-full min-h-[120px] border p-3 text-sm rounded-md bg-white focus:outline-none" /></div>
+            <div className="grid gap-1.5">
+              <Label className="font-bold text-slate-700">Status Operacional</Label>
+              <select name="status" defaultValue={campanha.status} className="h-10 border bg-white rounded-md px-3 text-sm">
+                <option value="Ativa">Ativa (Visível no App)</option>
+                <option value="Encerrada">Encerrada (Histórico)</option>
+                <option value="Agendada">Agendada (Oculta)</option>
+              </select>
             </div>
-
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-              <div className="p-3 bg-white rounded-lg shadow-sm"><Calendar className="w-6 h-6 text-orange-500" /></div>
-              <div className="space-y-1">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cronograma</span>
-                <p className="font-bold text-slate-800 text-lg">
-                  {new Date(campanha.dataInicio).toLocaleDateString()} até {new Date(campanha.dataFim).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-bold text-white h-11 gap-1 shadow mt-4"><Save className="w-4 h-4" /> Salvar Modificações</Button>
+          </form>
         </CardContent>
       </Card>
     </div>

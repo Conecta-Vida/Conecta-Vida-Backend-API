@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
-import { Users, Search, Plus, MoreHorizontal, Edit2, Trash2, Download } from "lucide-react";
-import { type Usuario, usuarioService, relatorioService } from "../services/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Users, Search, Plus, FileText, Download, Upload, Trash2, Edit2, MoreHorizontal } from "lucide-react";
+import { usuarioService, relatorioService, type Usuario } from "../services/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,222 +10,213 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
-// PARA A EQUIPE: Esta tela gerencia o CRUD (Criar, Ler, Atualizar, Deletar) de Usuários.
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busca, setBusca] = useState("");
   const [openCadastro, setOpenCadastro] = useState(false);
   const [openEdicao, setOpenEdicao] = useState(false);
-  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null);
 
   const carregarUsuarios = async () => {
     try {
       const dados = await usuarioService.listarTodos();
       setUsuarios(dados);
-    } catch (error) {
-      toast.error("Erro ao carregar lista de utilizadores.");
+    } catch {
+      toast.error("Erro ao conectar ao servidor para buscar usuários.");
     }
   };
 
   useEffect(() => { carregarUsuarios(); }, []);
 
-  // PARA A EQUIPE: useMemo memoriza a lista filtrada. Se tivermos 5.000 usuários, 
-  // ele só refaz o filtro se a variável 'busca' ou 'usuarios' mudar, deixando a tela super rápida.
+  // useMemo: Otimiza a performance filtrando a lista na memória apenas quando o usuário digita na busca
   const usuariosFiltrados = useMemo(() => {
     const termo = busca.toLowerCase();
     return usuarios.filter(u => 
-      u.nome.toLowerCase().includes(termo) || 
-      u.email.toLowerCase().includes(termo)
+      u.nome.toLowerCase().includes(termo) || u.email.toLowerCase().includes(termo)
     );
   }, [usuarios, busca]);
 
-  // Função disparada ao enviar o formulário de NOVO usuário
   const handleCadastro = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget); // Pega todos os inputs do form magicamente
+    const f = new FormData(e.currentTarget);
     const novo: Usuario = {
-      nome: formData.get("nome") as string,
-      email: formData.get("email") as string,
-      senha: formData.get("senha") as string,
-      idade: Number(formData.get("idade")),
-      sexo: formData.get("sexo") as string,
-      localizacao: formData.get("localizacao") as string,
+      nome: f.get("nome") as string,
+      email: f.get("email") as string,
+      senha: f.get("senha") as string,
+      idade: Number(f.get("idade")),
+      sexo: f.get("sexo") as string,
+      localizacao: f.get("localizacao") as string
     };
 
     try {
       await usuarioService.cadastrar(novo);
-      toast.success("Utilizador registado com sucesso!");
+      toast.success("Usuário inserido com sucesso!");
       setOpenCadastro(false);
-      carregarUsuarios(); // Atualiza a tabela chamando a API de novo
+      carregarUsuarios();
     } catch {
-      toast.error("Erro ao registar.");
+      toast.error("Falha ao salvar dados.");
     }
   };
 
-  // Função disparada ao enviar o formulário de EDIÇÃO
-  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEdicao = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!usuarioEditando?.id) return;
-
-    const formData = new FormData(e.currentTarget);
-    const dadosAtualizados: Usuario = {
-      nome: formData.get("nome") as string,
-      email: formData.get("email") as string,
-      senha: formData.get("senha") as string,
-      idade: Number(formData.get("idade")),
-      sexo: formData.get("sexo") as string,
-      localizacao: formData.get("localizacao") as string,
+    if (!usuarioSelecionado?.id) return;
+    const f = new FormData(e.currentTarget);
+    const dados: Usuario = {
+      nome: f.get("nome") as string,
+      email: f.get("email") as string,
+      idade: Number(f.get("idade")),
+      sexo: f.get("sexo") as string,
+      localizacao: f.get("localizacao") as string
     };
 
     try {
-      await usuarioService.atualizar(usuarioEditando.id, dadosAtualizados);
-      toast.success("Dados atualizados!");
+      await usuarioService.atualizar(usuarioSelecionado.id, dados);
+      toast.success("Cadastro atualizado!");
       setOpenEdicao(false);
       carregarUsuarios();
     } catch {
-      toast.error("Erro ao atualizar dados.");
+      toast.error("Erro na atualização.");
     }
   };
 
-  const handleExcluir = async (id: number, nome: string) => {
-    if (!confirm(`Tem a certeza que deseja eliminar o utilizador ${nome}?`)) return;
-
+  const handleDeletar = async (id: number, nome: string) => {
+    if (!confirm(`Excluir permanentemente o usuário ${nome}?`)) return;
     try {
       await usuarioService.deletar(id);
-      toast.success("Utilizador removido.");
+      toast.success("Usuário removido da base.");
       carregarUsuarios();
     } catch {
-      toast.error("Erro ao excluir.");
+      toast.error("Falha ao deletar.");
+    }
+  };
+
+  const handleImportacaoCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const msg = await usuarioService.importarCsv(file);
+      toast.success(msg);
+      carregarUsuarios();
+    } catch (err: any) {
+      toast.error(err.message || "Erro na importação.");
     }
   };
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Users className="w-8 h-8 text-blue-600" /> Utilizadores
+      {/* CABEÇALHO DA TELA */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-3xl font-black flex items-center gap-2 text-slate-900">
+          <Users className="w-8 h-8 text-blue-600" /> Controle de Usuários
         </h1>
         
-        <div className="flex gap-2">
-          {/* Chama a geração de PDF no backend */}
-          <Button variant="outline" onClick={() => relatorioService.downloadUsuariosPdf()} className="gap-2">
-            <Download className="w-4 h-4" /> Exportar PDF
+        <div className="flex flex-wrap items-center gap-2">
+          {/* BOTÕES DE ARQUIVOS */}
+          <Button variant="outline" size="sm" onClick={() => relatorioService.downloadUsuariosPdf()} className="font-bold gap-1 text-slate-700">
+            <FileText className="w-4 h-4 text-red-500" /> Exportar PDF
           </Button>
+          <Button variant="outline" size="sm" onClick={() => usuarioService.exportarCsv()} className="font-bold gap-1 text-slate-700">
+            <Download className="w-4 h-4 text-emerald-600" /> Exportar CSV
+          </Button>
+          
+          <label className="flex items-center gap-1 px-3 py-1.5 border border-input rounded-md text-sm font-bold bg-white cursor-pointer hover:bg-slate-50 text-slate-700 transition-all shadow-sm">
+            <Upload className="w-4 h-4 text-blue-600" /> Importar CSV
+            <input type="file" accept=".csv" className="hidden" onChange={handleImportacaoCsv} />
+          </label>
 
-          {/* Modal de Cadastro */}
+          {/* MODAL CADASTRO */}
           <Dialog open={openCadastro} onOpenChange={setOpenCadastro}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 gap-2 font-bold"><Plus className="w-4 h-4" /> Novo Utilizador</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 gap-1 font-bold shadow-md">
+                <Plus className="w-4 h-4" /> Novo Registro
+              </Button>
             </DialogTrigger>
-            <DialogContent className="p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-blue-600 p-6 text-white">
-                <DialogTitle className="text-xl font-bold text-white">Registar Utilizador</DialogTitle>
-                <p className="text-blue-100 text-xs">Adicione um novo utilizador ao sistema.</p>
-              </div>
-              <form onSubmit={handleCadastro} className="p-6 grid gap-4 bg-white">
-                <div className="grid gap-2"><Label>Nome Completo</Label><Input name="nome" required /></div>
-                <div className="grid gap-2"><Label>E-mail</Label><Input name="email" type="email" required /></div>
-                <div className="grid gap-2"><Label>Palavra-passe</Label><Input name="senha" type="password" required /></div>
+            <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl">
+              <DialogTitle className="text-xl font-black text-slate-900 border-b pb-3">Cadastrar Novo Cidadão</DialogTitle>
+              <form onSubmit={handleCadastro} className="space-y-4 pt-4">
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Nome Completo</Label><Input name="nome" required /></div>
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">E-mail Único</Label><Input name="email" type="email" required /></div>
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Senha Provisória</Label><Input name="senha" type="password" required /></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2"><Label>Idade</Label><Input name="idade" type="number" required /></div>
-                  <div className="grid gap-2"><Label>Sexo</Label><Input name="sexo" /></div>
+                  <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Idade</Label><Input name="idade" type="number" /></div>
+                  <div className="grid gap-1.5">
+                    <Label className="font-bold text-slate-700">Sexo</Label>
+                    <select name="sexo" className="h-10 w-full rounded-md border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                      <option value="Masculino">Masculino</option>
+                      <option value="Feminino">Feminino</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="grid gap-2"><Label>Localização</Label><Input name="localizacao" placeholder="Ex: Lisboa" required /></div>
-                <Button type="submit" className="w-full bg-blue-600 font-bold mt-2">Guardar</Button>
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Cargo / Permissão do Sistema</Label><Input name="localizacao" placeholder="Ex: Usuário Comum, Administrador" /></div>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-bold text-white h-11 shadow mt-4">Salvar Registro</Button>
               </form>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      {/* Modal de Edição (Abre quando o usuário clica em Editar na tabela) */}
+      {/* MODAL EDIÇÃO */}
       <Dialog open={openEdicao} onOpenChange={setOpenEdicao}>
-        <DialogContent className="p-0 overflow-hidden border-none shadow-2xl">
-          <div className="bg-amber-500 p-6 text-white">
-            <DialogTitle className="text-xl font-bold text-white">Editar Utilizador</DialogTitle>
-            <p className="text-amber-500 text-xs">Altere as informações de registo.</p>
-          </div>
-          {usuarioEditando && (
-            <form onSubmit={handleUpdate} className="p-6 grid gap-4 bg-white">
-              <div className="grid gap-2">
-                <Label>Nome Completo</Label>
-                <Input name="nome" defaultValue={usuarioEditando.nome} required />
-              </div>
-              <div className="grid gap-2">
-                <Label>E-mail</Label>
-                <Input name="email" type="email" defaultValue={usuarioEditando.email} required />
-              </div>
-              <div className="grid gap-2">
-                <Label>Palavra-passe</Label>
-                <Input name="senha" type="password" defaultValue={usuarioEditando.senha} placeholder="Digite para atualizar" required />
-              </div>
+        <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl">
+          <DialogTitle className="text-xl font-black text-slate-900 border-b pb-3">Editar Usuário</DialogTitle>
+          {usuarioSelecionado && (
+            <form onSubmit={handleEdicao} className="space-y-4 pt-4">
+              <div className="grid gap-1.5"><Label>Nome Completo</Label><Input name="nome" defaultValue={usuarioSelecionado.nome} required /></div>
+              <div className="grid gap-1.5"><Label>E-mail</Label><Input name="email" type="email" defaultValue={usuarioSelecionado.email} required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Idade</Label>
-                  <Input name="idade" type="number" defaultValue={usuarioEditando.idade} required />
-                </div>
-                <div className="grid gap-2">
+                <div className="grid gap-1.5"><Label>Idade</Label><Input name="idade" type="number" defaultValue={usuarioSelecionado.idade} /></div>
+                <div className="grid gap-1.5">
                   <Label>Sexo</Label>
-                  <Input name="sexo" defaultValue={usuarioEditando.sexo} />
+                  <select name="sexo" defaultValue={usuarioSelecionado.sexo} className="h-10 w-full rounded-md border bg-white px-3 text-sm">
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
+                  </select>
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label>Localização</Label>
-                <Input name="localizacao" defaultValue={usuarioEditando.localizacao} required />
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Button type="button" variant="outline" onClick={() => setOpenEdicao(false)} className="flex-1">Cancelar</Button>
-                <Button type="submit" className="flex-1 bg-amber-500 hover:bg-amber-600 font-bold">Atualizar</Button>
-              </div>
+              <div className="grid gap-1.5"><Label>Cargo / Permissão</Label><Input name="localizacao" defaultValue={usuarioSelecionado.localizacao} /></div>
+              <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 font-bold text-white h-11 mt-4 shadow">Salvar Alterações</Button>
             </form>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Barra de Pesquisa */}
+      {/* INPUT DE BUSCA */}
       <div className="relative">
         <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-        <Input 
-          placeholder="Procurar por nome ou e-mail..." 
-          className="pl-10 bg-white" 
-          value={busca} 
-          onChange={(e) => setBusca(e.target.value)} 
-        />
+        <Input placeholder="Buscar cidadão por nome ou e-mail..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10 bg-white shadow-sm border-slate-200 focus-visible:ring-blue-600" />
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden">
+      {/* TABELA */}
+      <Card className="border-none shadow-sm overflow-hidden bg-white">
         <Table>
           <TableHeader className="bg-slate-50">
             <TableRow>
-              <TableHead className="font-bold">Nome</TableHead>
-              <TableHead className="font-bold">E-mail</TableHead>
-              <TableHead className="text-center font-bold">Idade</TableHead>
+              <TableHead className="font-bold text-slate-700">Nome</TableHead>
+              <TableHead className="font-bold text-slate-700">E-mail</TableHead>
+              <TableHead className="font-bold text-slate-700">Idade / Sexo</TableHead>
+              <TableHead className="font-bold text-slate-700">Permissão</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="bg-white">
-            {/* Renderiza a lista filtrada pelo useMemo ao invés da lista bruta */}
+          <TableBody>
             {usuariosFiltrados.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell className="font-medium text-slate-900">{u.nome}</TableCell>
-                <TableCell className="text-slate-500">{u.email}</TableCell>
-                <TableCell className="text-center">
-                  <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold">
-                    {u.idade || '-'}
+              <TableRow key={u.id} className="hover:bg-slate-50/40">
+                <TableCell className="font-semibold text-slate-900">{u.nome}</TableCell>
+                <TableCell className="text-slate-500 font-medium">{u.email}</TableCell>
+                <TableCell className="text-slate-500 text-xs font-semibold">{u.idade ? `${u.idade} anos` : "-"} / {u.sexo || "-"}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${u.localizacao === 'Administrador' ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'bg-slate-50 text-slate-600 border border-slate-100'}`}>
+                    {u.localizacao || "Usuário Comum"}
                   </span>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm"><MoreHorizontal className="h-4 w-4" /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => { setUsuarioEditando(u); setOpenEdicao(true); }} className="gap-2 cursor-pointer">
-                        <Edit2 className="w-4 h-4 text-amber-500"/> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => u.id && handleExcluir(u.id, u.nome)} className="gap-2 text-red-600 cursor-pointer">
-                        <Trash2 className="w-4 h-4"/> Excluir
-                      </DropdownMenuItem>
+                    <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-28 bg-white shadow-md rounded-md border">
+                      <DropdownMenuItem onClick={() => { setUsuarioSelecionado(u); setOpenEdicao(true); }} className="gap-2 cursor-pointer text-amber-600 font-bold text-xs"><Edit2 className="w-3.5 h-3.5" /> Editar</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => u.id && handleDeletar(u.id, u.nome)} className="gap-2 cursor-pointer text-red-600 font-bold text-xs"><Trash2 className="w-3.5 h-3.5" /> Excluir</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

@@ -1,6 +1,11 @@
+// URL base onde o servidor local Spring Boot está a correr
 const API_URL = 'http://localhost:8080/api';
 
-// --- INTERFACES ---
+// ===================================================================
+// CONTRACOS DE DADOS (TYPESCRIPT INTERFACES)
+// Nota didática: Estas interfaces garantem que o React saiba exatamente 
+// quais as colunas e tipos de dados que vêm do Supabase.
+// ===================================================================
 
 export interface Usuario {
   id?: number;
@@ -9,51 +14,60 @@ export interface Usuario {
   senha?: string;
   idade?: number;
   sexo?: string;
-  localizacao?: string;
+  localizacao?: string; // Armazena o cargo (Ex: 'Administrador')
 }
 
-export interface Campanha {
+export interface InstituicaoSaude {
   id?: number;
-  titulo: string;
-  descricao: string;
-  dataInicio: string;
-  dataFim: string;
-  publicoAlvo: string;
-  status: 'Ativa' | 'Encerrada' | 'Agendada';
-}
-
-export interface Alerta {
-  id?: number;
-  tipo: 'urgente' | 'aviso' | 'info';
-  titulo: string;
-  descricao: string;
-  dataCriacao: string;
-  lido: boolean;
-}
-
-export interface UnidadeSaude {
-  id?: number;
+  tipoInstituicao: string; // 'UNIDADE', 'HOSPITAL', 'POSTO' ou 'UPA'
   nome: string;
-  endereco: string;
-  telefone: string;
-  email: string;
-  horarioSegSex: string;
-  horarioSabado: string;
-  horarioDomingo: string;
+  email?: string;
+  telefone?: string;
+  linksite?: string;
+  endereco?: string;
+  horarioSegSex?: string;
+  horarioSabado?: string;
+  horarioDomingo?: string;
 }
 
 export interface LogAtividade {
   id?: number;
-  usuario: string;
+  usuario?: Usuario;
   acao: string;
   dataHora: string;
 }
 
+// Alerta e Campanha mapeiam a tabela unificada 'comunicacoes' do Backend
+export interface Alerta {
+  id?: number;
+  tipo: 'ALERTA';
+  categoria: string; // 'urgente', 'aviso', 'info'
+  titulo: string;
+  descricao: string;
+  localizacao?: string;
+  lido: boolean;
+  dataPostada: string;
+}
+
+export interface Campanha {
+  id?: number;
+  tipo?: 'CAMPANHA';
+  titulo: string;
+  descricao: string;
+  categoria?: string;
+  publicoAlvo: string;
+  status: string; // 'Ativa', 'Encerrada', 'Agendada'
+  dataInicio: string;
+  dataFim: string;
+  linkimagem?: string;
+  localizacao?: string;
+}
+
 export interface DashboardStats {
-  totalUsuarios: number; // Atualizado de totalPacientes para coincidir com o banco
-  vacinasAplicadas: number; 
+  totalUsuarios: number;
   alertasAtivos: number;
-  agendamentosHoje: number;
+  campanhasAtivas: number;
+  noticiasPublicadas: number;
 }
 
 export interface ChartData {
@@ -61,71 +75,125 @@ export interface ChartData {
   quantidade: number;
 }
 
-// --- SERVIÇOS ---
+// ===================================================================
+// REQUISIÇÕES HTTP (SERVIÇOS ASSÍNCRONOS)
+// Nota didática: Centraliza os consumos usando 'fetch' nativo da web.
+// ===================================================================
 
-export const usuarioService = {
-  listarTodos: async (): Promise<Usuario[]> => {
-    const response = await fetch(`${API_URL}/usuarios`);
-    if (!response.ok) throw new Error('Erro ao buscar usuários');
-    return response.json();
-  },
-
-  buscarPorEmail: async (email: string): Promise<Usuario | null> => {
-    const response = await fetch(`${API_URL}/usuarios/email/${email}`);
-    if (response.status === 404) return null;
-    if (!response.ok) throw new Error('Erro na busca');
-    return response.json();
-  },
-
-  cadastrar: async (usuario: Usuario): Promise<Usuario> => {
-    const response = await fetch(`${API_URL}/usuarios`, {
+export const authService = {
+  login: async (email: string, senha: string): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(usuario)
+      body: JSON.stringify({ email, senha })
     });
+
+    if (!response.ok) {
+      const erroDados = await response.json();
+      throw new Error(erroDados.mensagem || 'Falha na autenticação');
+    }
     return response.json();
-  },
-
-  atualizar: async (id: number, usuario: Usuario): Promise<Usuario> => {
-    const response = await fetch(`${API_URL}/usuarios/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(usuario)
-    });
-    return response.json();
-  },
-
-  deletar: async (id: number): Promise<void> => {
-    await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
-  },
-
-  exportarCsv: () => {
-    window.open(`${API_URL}/usuarios/exportar-csv`, '_blank');
-  },
-
-  importarCsv: async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${API_URL}/usuarios/importar-csv`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Erro ao importar ficheiro CSV');
-    return response.text();
   }
 };
 
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
     const response = await fetch(`${API_URL}/dashboard/stats`);
-    if (!response.ok) throw new Error('Erro ao carregar métricas');
+    if (!response.ok) throw new Error('Erro ao buscar estatísticas.');
     return response.json();
   },
   getChartData: async (): Promise<ChartData[]> => {
     const response = await fetch(`${API_URL}/dashboard/chart`);
-    if (!response.ok) throw new Error('Erro ao carregar gráfico');
+    if (!response.ok) throw new Error('Erro ao carregar dados do gráfico.');
+    return response.json();
+  }
+};
+
+export const logService = {
+  listarRecentes: async (): Promise<LogAtividade[]> => {
+    const response = await fetch(`${API_URL}/api/logs/recentes`); // Fallback seguro ligado ao controlador de auditoria
+    if (!response.ok) {
+      // Tenta a rota secundária unificada caso a primeira falhe
+      const fallback = await fetch(`${API_URL}/dashboard/logs/recentes`);
+      if (!fallback.ok) return [];
+      return fallback.json();
+    }
+    return response.json();
+  }
+};
+
+export const usuarioService = {
+  listarTodos: async (): Promise<Usuario[]> => {
+    const response = await fetch(`${API_URL}/usuarios`);
+    if (!response.ok) throw new Error('Erro ao listar usuários.');
+    return response.json();
+  },
+  cadastrar: async (dados: Usuario): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/usuarios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao cadastrar.');
+    return response.json();
+  },
+  atualizar: async (id: number, dados: Usuario): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar.');
+    return response.json();
+  },
+  deletar: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Erro ao remover usuário.');
+  },
+  // Executa o download nativo da planilha CSV gerada pelo Java
+  exportarCsv: () => {
+    window.open(`${API_URL}/usuarios/exportar-csv`, '_blank');
+  },
+  // Envia um ficheiro físico multipart (FormData) para processamento em lote (saveAll)
+  importarCsv: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_URL}/usuarios/importar-csv`, {
+      method: 'POST',
+      body: formData // Nota: O fetch define o Content-Type como multipart/form-data automaticamente com o FormData
+    });
+
+    if (!response.ok) {
+      const txtErro = await response.text();
+      throw new Error(txtErro || 'Erro ao processar arquivo CSV.');
+    }
+    return response.text();
+  }
+};
+
+export const instituicaoService = {
+  listarTodas: async (): Promise<InstituicaoSaude[]> => {
+    const response = await fetch(`${API_URL}/instituicoes`);
+    if (!response.ok) throw new Error('Erro ao buscar instituições.');
+    return response.json();
+  },
+  cadastrar: async (dados: InstituicaoSaude): Promise<InstituicaoSaude> => {
+    const response = await fetch(`${API_URL}/instituicoes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao salvar instituição.');
+    return response.json();
+  },
+  atualizar: async (id: number, dados: InstituicaoSaude): Promise<InstituicaoSaude> => {
+    const response = await fetch(`${API_URL}/instituicoes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao modificar dados.');
     return response.json();
   }
 };
@@ -133,73 +201,65 @@ export const dashboardService = {
 export const campanhaService = {
   listarTodas: async (): Promise<Campanha[]> => {
     const response = await fetch(`${API_URL}/campanhas`);
-    if (!response.ok) throw new Error('Erro ao buscar campanhas');
+    if (!response.ok) throw new Error('Erro ao carregar campanhas.');
     return response.json();
   },
-
   buscarPorId: async (id: number): Promise<Campanha> => {
     const response = await fetch(`${API_URL}/campanhas/${id}`);
+    if (!response.ok) throw new Error('Campanha não encontrada.');
     return response.json();
   },
-
-  cadastrar: async (campanha: Campanha): Promise<Campanha> => {
+  cadastrar: async (dados: Campanha): Promise<Campanha> => {
+    // Mapeia para o endpoint genérico de comunicações ou específico de campanhas
     const response = await fetch(`${API_URL}/campanhas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(campanha)
+      body: JSON.stringify(dados)
     });
+    if (!response.ok) throw new Error('Erro ao publicar.');
     return response.json();
-  }
-};
-
-export const logService = {
-  listarRecentes: async (): Promise<LogAtividade[]> => {
-    const response = await fetch(`${API_URL}/logs/recentes`);
-    if (!response.ok) return [];
+  },
+  atualizar: async (id: number, dados: Campanha): Promise<Campanha> => {
+    const response = await fetch(`${API_URL}/campanhas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar dados.');
     return response.json();
+  },
+  deletar: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/campanhas/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Erro ao remover campanha.');
   }
 };
 
 export const alertaService = {
   listarTodos: async (): Promise<Alerta[]> => {
     const response = await fetch(`${API_URL}/alertas`);
+    if (!response.ok) throw new Error('Erro ao carregar alertas ativos.');
     return response.json();
   },
-
-  marcarComoLido: async (id: number): Promise<void> => {
-    await fetch(`${API_URL}/alertas/${id}/lido`, { method: 'PUT' });
-  }
-};
-
-export const unidadeSaudeService = {
-  obterDados: async (): Promise<UnidadeSaude> => {
-    const response = await fetch(`${API_URL}/unidade-saude`);
-    return response.json();
-  },
-
-  salvar: async (dados: UnidadeSaude): Promise<UnidadeSaude> => {
-    const response = await fetch(`${API_URL}/unidade-saude`, {
+  cadastrar: async (dados: Alerta): Promise<Alerta> => {
+    const response = await fetch(`${API_URL}/alertas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dados)
     });
+    if (!response.ok) throw new Error('Erro ao emitir alerta emergencial.');
     return response.json();
+  },
+  marcarComoLido: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/alertas/${id}/lido`, {
+      method: 'PUT'
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar estado do alerta.');
   }
 };
 
 export const relatorioService = {
-  downloadUsuariosPdf: async (): Promise<void> => {
-    const response = await fetch(`${API_URL}/relatorios/usuarios`);
-    if (!response.ok) throw new Error('Erro ao gerar relatório PDF');
-    
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `relatorio_usuarios_${new Date().getTime()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
+  // Triggers de download para o stream de bytes em PDF estruturado pelo iText 7 no Spring Boot
+  downloadUsuariosPdf: () => {
+    window.open(`${API_URL}/relatorios/usuarios`, '_blank');
   }
 };
