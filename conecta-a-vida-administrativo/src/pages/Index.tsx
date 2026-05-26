@@ -1,162 +1,172 @@
 import { useEffect, useState } from "react";
-import { Users, Megaphone, History, TrendingUp, Bell, Newspaper } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { type LogAtividade, type DashboardStats, type ChartData, logService, dashboardService } from "../services/api";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
+import { Users, AlertTriangle, Megaphone, Newspaper, ArrowUpRight, Activity, Loader2 } from "lucide-react";
+import { dashboardService, logService, type DashboardStats, type ChartData, type LogAtividade } from "../services/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Index() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsuarios: 0,
+    alertasAtivos: 0,
+    campanhasAtivas: 0,
+    noticiasPublicadas: 0
+  });
+  const [grafico, setGrafico] = useState<ChartData[]>([]);
   const [logs, setLogs] = useState<LogAtividade[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const carregarDados = async () => {
+    const carregarDadosDashboard = async () => {
       try {
-        // Dispara as requisições em paralelo para otimizar o carregamento
-        const [resStats, resChart, resLogs] = await Promise.all([
+        // Dispara as requisições em paralelo para máxima performance
+        const [dadosStats, dadosGrafico, dadosLogs] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getChartData(),
           logService.listarRecentes()
         ]);
 
-        setStats(resStats);
-        setChartData(resChart);
-        setLogs(resLogs);
+        if (dadosStats) setStats(dadosStats);
+        if (dadosGrafico) setGrafico(dadosGrafico);
+        if (dadosLogs) setLogs(dadosLogs);
       } catch (error) {
-        toast.error("Erro ao sincronizar dados com o servidor.");
+        console.error("Erro ao alimentar o painel com dados reais:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    carregarDados();
+    carregarDadosDashboard();
   }, []);
 
-  // Fornece um fallback com valores zerados para evitar erros de renderização enquanto carrega
-  const s = stats || { totalUsuarios: 0, alertasAtivos: 0, campanhasAtivas: 0, noticiasPublicadas: 0 };
+  if (loading) {
+    return (
+      <div className="flex h-[70vh] w-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-10">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Administrativa</h1>
-        <p className="text-slate-500 font-medium">Resumo em tempo real do ecossistema Conecta à Vida.</p>
+      {/* SEÇÃO DO CABEÇALHO */}
+      <div>
+        <h1 className="text-3xl font-black tracking-tight text-slate-900">Dashboard</h1>
+        <p className="text-slate-500 text-sm mt-1">Visão geral e indicadores do ecossistema Conecta à Vida.</p>
       </div>
 
-      {/* CARDS DE MÉTRICAS COMPLEMENTARMENTE DINÂMICOS */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-          title="Usuários Cadastrados" 
-          value={loading ? "..." : s.totalUsuarios} 
-          trend="+4%" 
-          up={true} 
-          icon={<Users className="w-5 h-5 text-blue-600"/>} 
-        />
-        <StatCard 
-          title="Campanhas Ativas" 
-          value={loading ? "..." : String(s.campanhasAtivas).padStart(2, '0')} 
-          trend="Em andamento" 
-          up={true} 
-          icon={<Megaphone className="w-5 h-5 text-purple-600"/>} 
-        />
-        <StatCard 
-          title="Alertas Ativos" 
-          value={loading ? "..." : String(s.alertasAtivos).padStart(2, '0')} 
-          trend="-1" 
-          up={false} 
-          icon={<Bell className="w-5 h-5 text-red-600"/>} 
-        />
-        <StatCard 
-          title="Notícias Publicadas" 
-          value={loading ? "..." : String(s.noticiasPublicadas).padStart(2, '0')} 
-          trend="Informativos" 
-          up={true} 
-          icon={<Newspaper className="w-5 h-5 text-green-600"/>} 
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-7">
-        {/* GRÁFICO DE CRESCIMENTO */}
-        <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-600" /> Crescimento da Plataforma
-            </CardTitle>
-            <CardDescription>Novos usuários integrados à comunidade nos últimos meses.</CardDescription>
+      {/* QUADRANTE DE METRICAS (4 CARDS) */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* CARD 1: USUÁRIOS */}
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Usuários Cadastrados</CardTitle>
+            <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Users className="w-4 h-4" /></div>
           </CardHeader>
-          <CardContent className="h-[350px] pt-4">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorQty" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="quantidade" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorQty)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 italic">
-                {loading ? "A carregar dados..." : "Nenhum fluxo de novos usuários registrado."}
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">{stats.totalUsuarios}</div>
+            <p className="text-xs text-blue-600 font-medium mt-1 flex items-center gap-0.5">Comunidade ativa no Supabase</p>
+          </CardContent>
+        </Card>
+
+        {/* CARD 2: ALERTAS ATIVOS */}
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Alertas Ativos</CardTitle>
+            <div className="p-2 bg-red-50 rounded-lg text-red-600"><AlertTriangle className="w-4 h-4" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">{stats.alertasAtivos}</div>
+            <p className="text-xs text-red-600 font-medium mt-1">Notificações críticas emitidas</p>
+          </CardContent>
+        </Card>
+
+        {/* CARD 3: CAMPANHAS */}
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Campanhas Ativas</CardTitle>
+            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600"><Megaphone className="w-4 h-4" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">{stats.campanhasAtivas}</div>
+            <p className="text-xs text-emerald-600 font-medium mt-1">Ações de saúde em andamento</p>
+          </CardContent>
+        </Card>
+
+        {/* CARD 4: NOTÍCIAS */}
+        <Card className="border-none shadow-sm bg-white">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Notícias Publicadas</CardTitle>
+            <div className="p-2 bg-amber-50 rounded-lg text-amber-600"><Newspaper className="w-4 h-4" /></div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">{stats.noticiasPublicadas}</div>
+            <p className="text-xs text-amber-600 font-medium mt-1">Informativos no feed do app</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* BLOCOS INFERIORES: GRÁFICO E ATIVIDADES */}
+      <div className="grid gap-6 md:grid-cols-7">
+        
+        {/* DESIGN DO GRÁFICO DE CRESCIMENTO */}
+        <Card className="md:col-span-4 border-none shadow-sm bg-white">
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-slate-800">Crescimento da Plataforma</CardTitle>
+            <p className="text-xs text-slate-400">Evolução do volume de usuários nos últimos meses</p>
+          </CardHeader>
+          <CardContent className="h-[240px] flex items-end justify-between gap-2 pt-4">
+            {grafico.map((item, index) => (
+              <div key={index} className="flex-1 flex flex-col items-center gap-2 group">
+                {/* Barra do gráfico proporcional */}
+                <div 
+                  className="w-full bg-blue-600/90 rounded-t-md group-hover:bg-blue-600 transition-all duration-300 relative"
+                  style={{ height: `${Math.max((item.quantidade / (stats.totalUsuarios || 1)) * 180, 15)}px` }}
+                >
+                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100 px-1 rounded">
+                    {item.quantidade}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-tight">{item.mes}</span>
+              </div>
+            ))}
+            {grafico.length === 0 && (
+              <div className="w-full text-center text-sm text-slate-400 italic pb-20">
+                Nenhum fluxo de novos usuários registrado.
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* FEED DE HISTÓRICO DE LOGS DE ATIVIDADE */}
-        <Card className="lg:col-span-3 border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <History className="w-5 h-5 text-blue-600"/> Atividade Recente
-            </CardTitle>
+        {/* LISTA DE ATIVIDADE RECENTE */}
+        <Card className="md:col-span-3 border-none shadow-sm bg-white">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-bold text-slate-800">Atividade Recente</CardTitle>
+              <p className="text-xs text-slate-400">Logs de ações recentes executadas</p>
+            </div>
+            <Activity className="w-4 h-4 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-6 pt-2">
-              {logs.length > 0 ? logs.map((log) => (
-                <div key={log.id} className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600">
-                    {log.usuario?.nome ? log.usuario.nome[0].toUpperCase() : "U"}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-800">{log.usuario?.nome || "Usuário"}</p>
-                    <p className="text-xs text-slate-500">{log.acao}</p>
-                  </div>
-                  <div className="text-[10px] font-bold text-slate-400">
-                    {log.dataHora ? formatDistanceToNow(new Date(log.dataHora), { addSuffix: true, locale: ptBR }) : ""}
+            <div className="space-y-4 max-h-[240px] overflow-y-auto pr-1">
+              {logs.map((log) => (
+                <div key={log.id} className="flex items-start gap-3 border-b border-slate-50 pb-3 last:border-none last:pb-0">
+                  <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0" />
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-bold text-slate-800">{log.usuario?.nome || "Sistema"}</p>
+                    <p className="text-xs text-slate-500 leading-tight">{log.acao}</p>
+                    <p className="text-[10px] text-slate-400">{new Date(log.dataHora).toLocaleDateString()}</p>
                   </div>
                 </div>
-              )) : <p className="text-center text-slate-400 py-10">Sem atividades recentes.</p>}
+              ))}
+              {logs.length === 0 && (
+                <div className="text-center py-12 text-sm text-slate-400 italic">
+                  Sem atividades recentes.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
+
       </div>
     </div>
-  );
-}
-
-// Sub-componente utilitário para estruturação visual uniforme dos Cards de métrica
-function StatCard({ title, value, trend, up, icon }: { title: string, value: any, trend: string, up: boolean, icon: any }) {
-  return (
-    <Card className="border-none shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</CardTitle>
-        <div className="p-2 bg-slate-50 rounded-lg">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold text-slate-900">{value}</div>
-        <p className={`text-xs font-bold flex items-center gap-1 mt-1 ${up ? 'text-green-600' : 'text-slate-400'}`}>
-          {trend} <span className="text-slate-400 font-normal">esta semana</span>
-        </p>
-      </CardContent>
-    </Card>
   );
 }

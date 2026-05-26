@@ -28,7 +28,10 @@ dependencies {
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web' // Corrigido
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // E-mail (Alerta de Segurança) - ADICIONADO PARA CORRIGIR OS ERROS DO AUTHCONTROLLER
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // Banco de Dados (Supabase/PostgreSQL)
     runtimeOnly 'org.postgresql:postgresql'
@@ -41,7 +44,7 @@ dependencies {
     implementation 'com.itextpdf:itext7-core:7.2.5'
 
     // Testes
-    testImplementation 'org.springframework.boot:spring-boot-starter-test' // Agrupado
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

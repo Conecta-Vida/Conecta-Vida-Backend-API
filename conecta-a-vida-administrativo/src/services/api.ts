@@ -1,10 +1,10 @@
 const API_URL = 'http://localhost:8080/api';
 
-// --- INTERFACES ALINHADAS COM O BANCO DE DADOS ---
+// --- INTERFACES ALINHADAS COM O BANCO DE DADOS (SUPABASE) ---
 
 export interface InstituicaoSaude {
   id?: number;
-  tipoInstituicao: string; // 'ORGAO' ou 'UNIDADE'
+  tipoInstituicao: string; 
   nome: string;
   email?: string;
   telefone?: string;
@@ -177,7 +177,7 @@ export const noticiaService = {
 
 export const logService = {
   listarRecentes: async (): Promise<LogAtividade[]> => {
-    const response = await fetch(`${API_URL}/logs/recentes`);
+    const response = await fetch(`${API_URL}/dashboard/logs/recentes`);
     if (!response.ok) return [];
     return response.json();
   }
@@ -209,7 +209,7 @@ export const unidadeSaudeService = {
     if (!response.ok) throw new Error('Erro ao buscar dados da unidade');
     return response.json();
   },
-  salvar: async (dados: Campanha): Promise<InstituicaoSaude> => {
+  salvar: async (dados: any): Promise<InstituicaoSaude> => {
     const response = await fetch(`${API_URL}/unidade-saude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -231,5 +231,52 @@ export const relatorioService = {
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
+  }
+};
+
+export const authService = {
+  login: async (email: string, senha: string): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha })
+    });
+
+    if (!response.ok) {
+      const erroDados = await response.json();
+      throw new Error(erroDados.mensagem || 'Erro na autenticação');
+    }
+
+    return response.json();
+  }
+};
+
+export const instituicaoService = {
+  listarTodas: async (): Promise<InstituicaoSaude[]> => {
+    const response = await fetch(`${API_URL}/instituicoes`);
+    if (!response.ok) throw new Error('Erro ao buscar instituições de saúde');
+    return response.json();
+  },
+  cadastrar: async (dados: InstituicaoSaude): Promise<InstituicaoSaude> => {
+    const response = await fetch(`${API_URL}/instituicoes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao cadastrar instituição');
+    return response.json();
+  },
+  atualizar: async (id: number, dados: InstituicaoSaude): Promise<InstituicaoSaude> => {
+    const response = await fetch(`${API_URL}/instituicoes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar instituição');
+    return response.json();
+  },
+  deletar: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/instituicoes/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Erro ao excluir instituição');
   }
 };
