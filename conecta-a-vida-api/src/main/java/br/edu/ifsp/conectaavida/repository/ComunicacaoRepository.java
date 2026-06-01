@@ -6,42 +6,67 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * INTERFACE: ComunicacaoRepository
- * Objetivo: Realizar operações de CRUD e buscas customizadas na tabela "comunicacoes".
- * * Explicação para a Equipa: Ao estender JpaRepository<Comunicacao, Long>, herdamos
- * dezenas de métodos prontos, como .save(), .findAll(), .deleteById() e .count().
+ * REPOSITÓRIO UNIFICADO: COMUNICAÇÃO (ALERTAS, CAMPANHAS E NOTÍCIAS)
+ * * Explicação para o grupo (Luiz, Gustavo, Gabriel, Renan e Maycon):
+ * Esta interface utiliza um recurso do Spring Data JPA chamado "Query Methods" (Métodos de Consulta).
+ * Nós não precisamos escrever códigos SQL na mão aqui! O Spring lê o nome que damos ao método
+ * (desde que siga as palavras-chave como 'And', 'False', 'OrderBy', 'Count') e monta a consulta
+ * no banco do Supabase de forma 100% automática nos bastidores.
  */
-@Repository // Indica ao Spring que esta classe gerencia transações de persistência com o banco
+@Repository
 public interface ComunicacaoRepository extends JpaRepository<Comunicacao, Long> {
 
-    /**
-     * Busca genérica por tipo.
-     * Exemplo: Se passarmos "NOTICIA", trará todas as linhas que possuem esse tipo no banco.
-     */
+    // ===================================================================
+    // METODOS DE BUSCA COMPARTILHADOS (WEB ADMIN & MOBILE)
+    // ===================================================================
+
+    // SQL gerado: SELECT * FROM comunicacoes WHERE tipo = ?;
     List<Comunicacao> findByTipo(String tipo);
 
+    // SQL gerado: SELECT * FROM comunicacoes WHERE tipo = ? AND categoria = ?;
+    List<Comunicacao> findByTipoAndCategoria(String tipo, String categoria);
+
+    // SQL gerado: SELECT * FROM comunicacoes WHERE tipo = ? AND localizacao = ?;
+    List<Comunicacao> findByTipoAndLocalizacao(String tipo, String localizacao);
+
+
+    // ===================================================================
+    // SOLUÇÃO DOS ERROS: MÉTODOS EXIGIDOS PELOS CONTROLADORES
+    // ===================================================================
+
     /**
-     * Query Method Avançado: O Spring decifra o nome deste método e monta um SQL com:
-     * WHERE tipo = ? AND lido = false ORDER BY data_postada DESC;
-     * Muito utilizado para listar os Alertas mais urgentes e recentes no aplicativo dos cidadãos.
+     * SOLUÇÃO DO ERRO 1 (Exigido pelo AlertaController):
+     * Filtra os alertas emergenciais que ainda NÃO foram lidos (lido == false)
+     * e os entrega ordenados da data mais recente para a mais antiga.
+     * * SQL Automático:
+     * SELECT * FROM public.comunicacoes WHERE tipo = ? AND lido = false ORDER BY data_postada DESC;
      */
     List<Comunicacao> findByTipoAndLidoFalseOrderByDataPostadaDesc(String tipo);
 
     /**
-     * Conta registros específicos não lidos.
-     * Usado no Dashboard para exibir a quantidade de Alertas Críticos pendentes de atenção.
+     * SOLUÇÃO DO ERRO 2 (Exigido pelo DashboardController):
+     * Faz a contagem de quantos alertas emergenciais ativos (não lidos) existem no sistema
+     * para renderizar o número vermelho no indicador do Painel Web.
+     * * SQL Automático:
+     * SELECT COUNT(*) FROM public.comunicacoes WHERE tipo = ? AND lido = false;
      */
     long countByTipoAndLidoFalse(String tipo);
 
     /**
-     * Conta o total absoluto de registros filtrados apenas por tipo.
-     * Usado no Dashboard para sabermos quantas Notícias já foram publicadas de forma vitalícia.
-     */
-    long countByTipo(String tipo);
-
-    /**
-     * Conta cruzando duas colunas: tipo e status.
-     * Usado no Dashboard para retornar o número exato de Campanhas de Saúde cujo status seja textualmente "Ativa".
+     * SOLUÇÃO DO ERRO 3 (Exigido pelo DashboardController):
+     * Faz a contagem de quantas campanhas (mutirões) estão cadastradas com um status específico (Ex: "Ativa").
+     * Alimentará o card de métricas de engajamento da comunidade.
+     * * SQL Automático:
+     * SELECT COUNT(*) FROM public.comunicacoes WHERE tipo = ? AND status = ?;
      */
     long countByTipoAndStatus(String tipo, String status);
+
+    /**
+     * SOLUÇÃO DO ERRO 4 (Exigido pelo DashboardController):
+     * Conta o volume bruto de publicações de um determinado tipo (Ex: tipo "NOTICIA")
+     * cadastradas no sistema para exibir no gráfico consolidado.
+     * * SQL Automático:
+     * SELECT COUNT(*) FROM public.comunicacoes WHERE tipo = ?;
+     */
+    long countByTipo(String tipo);
 }

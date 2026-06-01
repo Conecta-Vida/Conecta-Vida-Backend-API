@@ -4,35 +4,36 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * ENTIDADE: InstituicaoSaude
- * Tabela na Base de Dados: "instituicoes_saude"
- * Objetivo: Mapear hospitais, UBSs, UPAs e postos de atendimento público.
+ * ENTIDADE UNIFICADA: INSTITUIÇÃO DE SAÚDE
+ * Explicação para o grupo: Esta classe unifica o conceito de "OrgaoSaude" (usado no mobile)
+ * com "InstituicaoSaude" (usado no painel web). Ela representa hospitais, UBSs e postos de vacinação.
  */
-@Entity // Diz ao Hibernate que esta classe representa uma tabela do banco de dados
-@Table(name = "instituicoes_saude") // Vincula a classe à tabela real no Supabase
-@Getter // Cria automaticamente todos os métodos get em tempo de compilação
-@Setter // Cria automaticamente todos os métodos set em tempo de compilação
-@NoArgsConstructor // Construtor padrão sem argumentos (obrigatório para o JPA)
-@AllArgsConstructor // Construtor completo com todos os atributos da classe
+@Entity
+@Table(name = "instituicoes_saude", schema = "public")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class InstituicaoSaude {
 
-    @Id // Define a Chave Primária da tabela
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configura o ID como auto-incremental
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Conecta o atributo do Java com o nome da coluna em snake_case no PostgreSQL
     @Column(name = "tipo_instituicao", nullable = false)
-    private String tipoInstituicao; // Aceita strings padronizadas como 'UNIDADE' ou 'UPA'
+    private String tipoInstituicao; // Ex: "Hospital", "Posto de Saúde", "Hemocentro"
 
-    @Column(nullable = false) // Campo obrigatório (NOT NULL)
+    @Column(nullable = false, length = 150)
     private String nome;
 
     private String email;
+
+    @Column(nullable = false, length = 20)
     private String telefone;
-    private String linksite;
+
+    @Column(name = "linksite")
+    private String linksite; // Mapeamento explícito para snake_case do banco de dados
+
     private String endereco;
 
-    // Mapeamento dos cronogramas semanais de atendimento da unidade
     @Column(name = "horario_seg_sex")
     private String horarioSegSex;
 
