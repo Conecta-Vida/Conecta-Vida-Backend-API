@@ -2,41 +2,57 @@ package br.edu.ifsp.conectaavida.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * ENTIDADE: Usuario
- * Tabela na Base de Dados: "usuarios"
- * Objetivo: Representar tanto os cidadãos comuns da plataforma quanto os administradores do painel.
+ * ENTIDADE UNIFICADA: USUÁRIO
+ * Esta classe atende tanto o cidadão do aplicativo mobile quanto o gestor do painel Web.
+ * Ela centraliza os dados cadastrais e gerencia o nível de acesso do ecossistema.
  */
-@Entity // Indica ao Spring Boot/Hibernate que esta classe é uma entidade gerida pelo banco de dados
-@Table(name = "usuarios") // Define explicitamente o nome da tabela física no PostgreSQL
-@Getter // Lombok: Cria automaticamente os métodos get de todos os atributos em tempo de compilação
-@Setter // Lombok: Cria automaticamente os métodos set de todos os atributos em tempo de compilação
-@NoArgsConstructor // Lombok: Cria o construtor padrão vazio (exigido pelo JPA)
-@AllArgsConstructor // Lombok: Cria um construtor completo com todos os parâmetros da classe
+@Entity
+@Table(name = "usuarios", schema = "public")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class Usuario {
 
-    @Id // Define o atributo abaixo como a Chave Primária (Primary Key) da tabela
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configura o ID como auto-incremental (Serial/Identity no Postgres)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) // Garante que a coluna não aceita valores nulos (NOT NULL)
+    @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(nullable = false, unique = true) // NOT NULL e impede a existência de dois utilizadores com o mesmo e-mail
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false) // NOT NULL: Armazena a credencial de acesso do utilizador
-    private String senha;
+    @Column(nullable = false)
+    private String senha; // Armazenará a senha em formato HASH (Criptografada)
 
-    private Integer idade; // Tipo Integer (objeto) aceita nulo caso o utilizador não queira informar a idade
-
+    private Integer idade;
     private String sexo;
 
     /**
-     * IMPORTANTE PARA A EQUIPA:
-     * O atributo 'localizacao' armazena as permissões ou níveis de acesso do sistema.
-     * Se o valor for "Administrador", o AuthController liberta o acesso para o painel em React.
+     * CAMPO LOCALIZAÇÃO (METADADO DE PERMISSÃO):
+     * Usado estrategicamente para definir o papel do usuário no sistema:
+     * - "Administrador": Tem acesso total às telas de gestão do Painel Web.
+     * - "Usuário Comum": Cidadão comum que acessa apenas o aplicativo mobile.
      */
     private String localizacao;
+
+    /**
+     * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
+     * Explicação para o grupo: Um Usuário (Cidadão) pode se inscrever em várias Campanhas de Saúde,
+     * e uma Campanha de Saúde pode ter vários Usuários inscritos.
+     * * O Hibernate gerencia isso criando automaticamente a tabela associativa física "usuarios_campanhas"
+     * no banco de dados, vinculando a chave estrangeira "usuario_id" com "comunicacao_id".
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "usuarios_campanhas",
+            schema = "public",
+            joinColumns = @JoinColumn(name = "usuario_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "comunicacao_id", referencedColumnName = "id")
+    )
+    private Set<Comunicacao> campanhasInscritas = new HashSet<>();
 }

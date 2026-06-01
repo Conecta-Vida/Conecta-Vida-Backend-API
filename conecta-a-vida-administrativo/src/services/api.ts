@@ -1,10 +1,7 @@
-// URL base onde o servidor local Spring Boot está a correr
 const API_URL = 'http://localhost:8080/api';
 
 // ===================================================================
-// CONTRACOS DE DADOS (TYPESCRIPT INTERFACES)
-// Nota didática: Estas interfaces garantem que o React saiba exatamente 
-// quais as colunas e tipos de dados que vêm do Supabase.
+// CONTRATOS DE DADOS (INTERFACES)
 // ===================================================================
 
 export interface Usuario {
@@ -14,12 +11,12 @@ export interface Usuario {
   senha?: string;
   idade?: number;
   sexo?: string;
-  localizacao?: string; // Armazena o cargo (Ex: 'Administrador')
+  localizacao?: string; 
 }
 
 export interface InstituicaoSaude {
   id?: number;
-  tipoInstituicao: string; // 'UNIDADE', 'HOSPITAL', 'POSTO' ou 'UPA'
+  tipoInstituicao: string; 
   nome: string;
   email?: string;
   telefone?: string;
@@ -37,11 +34,10 @@ export interface LogAtividade {
   dataHora: string;
 }
 
-// Alerta e Campanha mapeiam a tabela unificada 'comunicacoes' do Backend
 export interface Alerta {
   id?: number;
   tipo: 'ALERTA';
-  categoria: string; // 'urgente', 'aviso', 'info'
+  categoria: string; 
   titulo: string;
   descricao: string;
   localizacao?: string;
@@ -56,7 +52,7 @@ export interface Campanha {
   descricao: string;
   categoria?: string;
   publicoAlvo: string;
-  status: string; // 'Ativa', 'Encerrada', 'Agendada'
+  status: string; 
   dataInicio: string;
   dataFim: string;
   linkimagem?: string;
@@ -77,10 +73,10 @@ export interface ChartData {
 
 // ===================================================================
 // REQUISIÇÕES HTTP (SERVIÇOS ASSÍNCRONOS)
-// Nota didática: Centraliza os consumos usando 'fetch' nativo da web.
 // ===================================================================
 
 export const authService = {
+  // Autenticação básica (Login) - CR8
   login: async (email: string, senha: string): Promise<Usuario> => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
@@ -93,6 +89,30 @@ export const authService = {
       throw new Error(erroDados.mensagem || 'Falha na autenticação');
     }
     return response.json();
+  },
+
+  // NOVO: Registro obrigatório solicitado no CR8
+  register: async (dados: Usuario): Promise<Usuario> => {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+
+    if (!response.ok) {
+      const erroDados = await response.json();
+      throw new Error(erroDados.mensagem || 'Erro ao registrar nova credencial.');
+    }
+    return response.json();
+  },
+
+  // NOVO: Logout no Servidor solicitado no CR8
+  logout: async (): Promise<void> => {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) throw new Error('Falha ao sincronizar encerramento com a API.');
   }
 };
 
@@ -111,9 +131,8 @@ export const dashboardService = {
 
 export const logService = {
   listarRecentes: async (): Promise<LogAtividade[]> => {
-    const response = await fetch(`${API_URL}/api/logs/recentes`); // Fallback seguro ligado ao controlador de auditoria
+    const response = await fetch(`${API_URL}/logs/recentes`); 
     if (!response.ok) {
-      // Tenta a rota secundária unificada caso a primeira falhe
       const fallback = await fetch(`${API_URL}/dashboard/logs/recentes`);
       if (!fallback.ok) return [];
       return fallback.json();
@@ -150,25 +169,29 @@ export const usuarioService = {
     const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
     if (!response.ok) throw new Error('Erro ao remover usuário.');
   },
-  // Executa o download nativo da planilha CSV gerada pelo Java
   exportarCsv: () => {
     window.open(`${API_URL}/usuarios/exportar-csv`, '_blank');
   },
-  // Envia um ficheiro físico multipart (FormData) para processamento em lote (saveAll)
   importarCsv: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-
     const response = await fetch(`${API_URL}/usuarios/importar-csv`, {
       method: 'POST',
-      body: formData // Nota: O fetch define o Content-Type como multipart/form-data automaticamente com o FormData
+      body: formData 
     });
-
     if (!response.ok) {
       const txtErro = await response.text();
       throw new Error(txtErro || 'Erro ao processar arquivo CSV.');
     }
     return response.text();
+  },
+
+  // NOVO: Inscrição de Usuários em Campanhas (Muitos-para-Muitos - CR7)
+  inscreverEmCampanha: async (usuarioId: number, campanhaId: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/usuarios/${usuarioId}/campanhas/${campanhaId}`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Falha ao vincular cidadão à campanha.');
   }
 };
 
@@ -210,7 +233,6 @@ export const campanhaService = {
     return response.json();
   },
   cadastrar: async (dados: Campanha): Promise<Campanha> => {
-    // Mapeia para o endpoint genérico de comunicações ou específico de campanhas
     const response = await fetch(`${API_URL}/campanhas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -258,7 +280,6 @@ export const alertaService = {
 };
 
 export const relatorioService = {
-  // Triggers de download para o stream de bytes em PDF estruturado pelo iText 7 no Spring Boot
   downloadUsuariosPdf: () => {
     window.open(`${API_URL}/relatorios/usuarios`, '_blank');
   }
