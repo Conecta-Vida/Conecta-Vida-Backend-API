@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Users, FileText, Download, Upload, Plus, MoreHorizontal, Edit2, Trash2, UserCheck } from "lucide-react";
+import { Users, FileText, Download, Upload, Plus, MoreHorizontal, Edit2, Trash2, UserCheck, MapPin } from "lucide-react";
 import { type Usuario, usuarioService, relatorioService } from "../services/api";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,7 +15,7 @@ export default function Usuarios() {
   const [busca, setBusca] = useState("");
   const [openCadastro, setOpenCadastro] = useState(false);
   const [openEdicao, setOpenEdicao] = useState(false);
-  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [usuarioEditando, setUsuarioEditando] = useState<any | null>(null);
 
   const carregarUsuarios = async () => {
     try {
@@ -30,13 +30,14 @@ export default function Usuarios() {
     carregarUsuarios();
   }, []);
 
-  // Filtragem inteligente em memória via useMemo
+  // Filtragem inteligente em memória via useMemo (busca por nome, e-mail ou cidade)
   const filtrados = useMemo(() => {
     const termo = busca.toLowerCase();
     return usuarios.filter(
       (u) =>
         u.nome.toLowerCase().includes(termo) ||
-        u.email.toLowerCase().includes(termo)
+        u.email.toLowerCase().includes(termo) ||
+        (u.localizacao && u.localizacao.toLowerCase().includes(termo))
     );
   }, [usuarios, busca]);
 
@@ -45,13 +46,14 @@ export default function Usuarios() {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     
-    const novo: Usuario = {
+    const novo: any = {
       nome: f.get("nome") as string,
       email: f.get("email") as string,
-      senha: (f.get("senha") as string) || "123456", // senha padrão caso vazio
-      idade: f.get("idade") ? Number(f.get("idado")) : undefined,
+      senha: (f.get("senha") as string) || "123456", // Senha padrão caso vazio
+      idade: f.get("idade") ? Number(f.get("idade")) : undefined, // CORRIGIDO: de 'idado' para 'idade'
       sexo: (f.get("sexo") as string) || undefined,
-      localizacao: f.get("localizacao") as string, // Aqui entra 'Administrador' ou 'Usuário Comum'
+      localizacao: f.get("localizacao") as string, // Armazena a Cidade do Cidadão
+      permissao: f.get("permissao") as string,     // Armazena se é Administrador ou Usuário Comum
     };
 
     try {
@@ -70,17 +72,18 @@ export default function Usuarios() {
     if (!usuarioEditando?.id) return;
     const f = new FormData(e.currentTarget);
 
-    const dados: Usuario = {
+    const dados: any = {
       nome: f.get("nome") as string,
       email: f.get("email") as string,
       idade: f.get("idade") ? Number(f.get("idade")) : undefined,
       sexo: (f.get("sexo") as string) || undefined,
-      localizacao: f.get("localizacao") as string,
+      localizacao: f.get("localizacao") as string, // Atualiza Cidade
+      permissao: f.get("permissao") as string,     // Atualiza Permissão
     };
 
     try {
       await usuarioService.atualizar(usuarioEditando.id, dados);
-      toast.success("Dados atualizados com sucesso!");
+      toast.success("Dados updated com sucesso!");
       setOpenEdicao(false);
       carregarUsuarios();
     } catch {
@@ -137,7 +140,7 @@ export default function Usuarios() {
             <input type="file" accept=".csv" onChange={handleImportarCsv} className="hidden" />
           </label>
 
-          {/* MODAL DE CADASTRO: AQUI ESTÁ O SEU BOTÃO CORRIGIDO */}
+          {/* MODAL DE CADASTRO */}
           <Dialog open={openCadastro} onOpenChange={setOpenCadastro}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 font-bold hover:bg-blue-700 shadow-sm gap-1">
@@ -171,13 +174,22 @@ export default function Usuarios() {
                     <Input name="sexo" placeholder="Ex: Masculino" />
                   </div>
                 </div>
+                
+                {/* NOVO CAMPO: Cidade Residencial (Mapeado para localizacao) */}
+                <div className="grid gap-1.5">
+                  <Label className="font-bold text-slate-700">Cidade (Filtro Feed Mobile)</Label>
+                  <Input name="localizacao" required placeholder="Ex: Bragança Paulista" />
+                </div>
+
+                {/* CAMPO ALTERADO: Nível de Permissão (Mapeado para permissao) */}
                 <div className="grid gap-1.5">
                   <Label className="font-bold text-slate-700">Nível de Permissão (Cargo)</Label>
-                  <select name="localizacao" required className="h-10 w-full border rounded-md px-3 bg-white text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                  <select name="permissao" required className="h-10 w-full border rounded-md px-3 bg-white text-sm font-semibold focus:ring-2 focus:ring-blue-600">
                     <option value="Usuário Comum">Usuário Comum (Cidadão)</option>
                     <option value="Administrador">Administrador (Gestor de Saúde)</option>
                   </select>
                 </div>
+                
                 <Button type="submit" className="w-full bg-blue-600 font-bold text-white h-11 shadow mt-4">
                   Salvar Registro no Banco
                 </Button>
@@ -190,14 +202,14 @@ export default function Usuarios() {
       {/* BARRA DE PESQUISA */}
       <div className="relative">
         <Input
-          placeholder="Buscar cidadão por nome ou e-mail..."
+          placeholder="Buscar cidadão por nome, e-mail ou cidade de cadastro..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           className="bg-white shadow-sm pl-4 h-11"
         />
       </div>
 
-      {/* TABELA DE DADOS CONFIGURADA IGUAL À IMAGEM */}
+      {/* TABELA DE LISTAGEM */}
       <Card className="border border-slate-200 shadow-sm overflow-hidden bg-white rounded-xl">
         <Table>
           <TableHeader className="bg-slate-50/70 border-b border-slate-100">
@@ -205,6 +217,7 @@ export default function Usuarios() {
               <TableHead className="font-bold text-slate-600 px-6 py-4">Nome</TableHead>
               <TableHead className="font-bold text-slate-600 px-6 py-4">E-mail</TableHead>
               <TableHead className="font-bold text-slate-600 px-6 py-4">Idade / Sexo</TableHead>
+              <TableHead className="font-bold text-slate-600 px-6 py-4">Cidade (Mobile)</TableHead>
               <TableHead className="font-bold text-slate-600 px-6 py-4">Permissão</TableHead>
               <TableHead className="w-[60px]"></TableHead>
             </TableRow>
@@ -217,15 +230,23 @@ export default function Usuarios() {
                 <TableCell className="text-slate-500 font-medium px-6 py-4">
                   {u.idade ? `${u.idade} anos` : "-"} / {u.sexo || "-"}
                 </TableCell>
+                
+                {/* RENDERIZAÇÃO DA CIDADE DO USUÁRIO */}
+                <TableCell className="text-slate-600 font-semibold px-6 py-4 flex items-center gap-1.5 mt-1.5 border-none">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" /> {u.localizacao || "-"}
+                </TableCell>
+                
+                {/* RENDERIZAÇÃO CORRETA DO BADGE VIA PROPRIEDADE u.permissao */}
                 <TableCell className="px-6 py-4">
                   <span className={`px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${
-                    u.localizacao === 'Administrador' || u.localizacao === 'ADMINISTRADOR'
+                    u.permissao === 'Administrador' || u.permissao === 'ADMINISTRADOR'
                       ? 'bg-purple-100 text-purple-700 border border-purple-200'
                       : 'bg-slate-100 text-slate-600 border border-slate-200'
                   }`}>
-                    {u.localizacao || "Usuário Comum"}
+                    {u.permissao || "Usuário Comum"}
                   </span>
                 </TableCell>
+                
                 <TableCell className="px-6 py-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -247,7 +268,7 @@ export default function Usuarios() {
             ))}
             {filtrados.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-slate-400 italic">
+                <TableCell colSpan={6} className="text-center py-10 text-slate-400 italic">
                   Nenhum cidadão ou administrador localizado na base de dados.
                 </TableCell>
               </TableRow>
@@ -259,22 +280,31 @@ export default function Usuarios() {
       {/* MODAL DE EDIÇÃO */}
       <Dialog open={openEdicao} onOpenChange={setOpenEdicao}>
         <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl">
-          <DialogTitle className="text-xl font-black text-slate-900 border-b pb-3EMA">Editar Dados de Registro</DialogTitle>
+          <DialogTitle className="text-xl font-black text-slate-900 border-b pb-3">Editar Dados de Registro</DialogTitle>
           {usuarioEditando && (
             <form onSubmit={handleUpdate} className="space-y-4 pt-4">
-              <div className="grid gap-1.5"><Label>Nome Completo</Label><Input name="nome" defaultValue={usuarioEditando.nome} required /></div>
-              <div className="grid gap-1.5"><Label>E-mail</Label><Input name="email" type="email" defaultValue={usuarioEditando.email} required /></div>
+              <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Nome Completo</Label><Input name="nome" defaultValue={usuarioEditando.nome} required /></div>
+              <div className="grid gap-1.5"><Label className="font-bold text-slate-700">E-mail</Label><Input name="email" type="email" defaultValue={usuarioEditando.email} required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-1.5"><Label>Idade</Label><Input name="idade" type="number" defaultValue={usuarioEditando.idade || ""} /></div>
-                <div className="grid gap-1.5"><Label>Gênero</Label><Input name="sexo" defaultValue={usuarioEditando.sexo || ""} /></div>
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Idade</Label><Input name="idade" type="number" defaultValue={usuarioEditando.idade || ""} /></div>
+                <div className="grid gap-1.5"><Label className="font-bold text-slate-700">Gênero</Label><Input name="sexo" defaultValue={usuarioEditando.sexo || ""} /></div>
               </div>
+              
+              {/* CAMPO DE EDIÇÃO DE CIDADE */}
               <div className="grid gap-1.5">
-                <Label>Nível de Permissão (Cargo)</Label>
-                <select name="localizacao" defaultValue={usuarioEditando.localizacao || "Usuário Comum"} className="h-10 w-full border rounded-md px-3 bg-white text-sm font-semibold">
+                <Label className="font-bold text-slate-700">Cidade (Filtro Feed Mobile)</Label>
+                <Input name="localizacao" defaultValue={usuarioEditando.localizacao || ""} required />
+              </div>
+
+              {/* CAMPO DE EDIÇÃO DE CARGO */}
+              <div className="grid gap-1.5">
+                <Label className="font-bold text-slate-700">Nível de Permissão (Cargo)</Label>
+                <select name="permissao" defaultValue={usuarioEditando.permissao || "Usuário Comum"} className="h-10 w-full border rounded-md px-3 bg-white text-sm font-semibold">
                   <option value="Usuário Comum">Usuário Comum (Cidadão)</option>
                   <option value="Administrador">Administrador (Gestor de Saúde)</option>
                 </select>
               </div>
+              
               <Button type="submit" className="w-full bg-amber-500 font-bold text-white h-11 mt-4 shadow">
                 Salvar Alterações
               </Button>

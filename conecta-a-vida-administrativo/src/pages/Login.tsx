@@ -32,7 +32,8 @@ export default function Login() {
       toast.success(`Bem-vindo de volta, ${usuarioLogado.nome}!`);
       navigate("/"); // Redireciona imediatamente para a home (Dashboard)
     } catch (error: any) {
-      // Captura a mensagem customizada enviada pelo Spring Boot (Ex: "Você não tem credencial liberada")
+      // Captura e renderiza as mensagens dinâmicas e customizadas de erro vindas do Back-end Spring Boot
+      // (Ex: "Você tem mais 2 tentativas", "Esta conta foi bloqueada por segurança.")
       toast.error(error.message || "Erro ao tentar realizar o login.");
     } finally {
       setLoading(false);
@@ -87,7 +88,9 @@ export default function Login() {
             className="w-full bg-blue-600 font-bold h-11 text-white hover:bg-blue-700 shadow shadow-blue-100"
           >
             {loading ? (
-              <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Autenticando...</span>
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" /> Autenticando...
+              </span>
             ) : (
               "Entrar no Sistema"
             )}

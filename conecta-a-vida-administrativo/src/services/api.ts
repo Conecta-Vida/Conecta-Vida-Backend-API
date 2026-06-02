@@ -11,7 +11,8 @@ export interface Usuario {
   senha?: string;
   idade?: number;
   sexo?: string;
-  localizacao?: string; 
+  localizacao?: string; // MANTIDO PARA AS CIDADES (FILTRO MOBILE) 🏙️
+  permissao?: string;   // 🚀 ADICIONADO: Define se é 'Administrador' ou 'Usuário Comum' 🔒
 }
 
 export interface InstituicaoSaude {
@@ -91,7 +92,7 @@ export const authService = {
     return response.json();
   },
 
-  // NOVO: Registro obrigatório solicitado no CR8
+  // Registro obrigatório solicitado no CR8
   register: async (dados: Usuario): Promise<Usuario> => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
@@ -106,7 +107,7 @@ export const authService = {
     return response.json();
   },
 
-  // NOVO: Logout no Servidor solicitado no CR8
+  // Logout no Servidor solicitado no CR8
   logout: async (): Promise<void> => {
     const response = await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
@@ -186,7 +187,7 @@ export const usuarioService = {
     return response.text();
   },
 
-  // NOVO: Inscrição de Usuários em Campanhas (Muitos-para-Muitos - CR7)
+  // Inscrição de Usuários em Campanhas (Muitos-para-Muitos - CR7)
   inscreverEmCampanha: async (usuarioId: number, campanhaId: number): Promise<void> => {
     const response = await fetch(`${API_URL}/usuarios/${usuarioId}/campanhas/${campanhaId}`, {
       method: 'POST'
