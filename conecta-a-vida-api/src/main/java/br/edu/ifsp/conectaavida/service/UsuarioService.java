@@ -54,8 +54,8 @@ public class UsuarioService {
         novoUsuario.setSenha(criptografarSenha(novoUsuario.getSenha()));
 
         // Se a chamada veio do app mobile, assume-se por padrão que é um usuário do ecossistema comum
-        if (novoUsuario.getLocalizacao() == null) {
-            novoUsuario.setLocalizacao("Usuário Comum");
+        if (novoUsuario.getPermissao() == null || novoUsuario.getPermissao().isEmpty()) { 
+            novoUsuario.setPermissao("Usuário Comum");
         }
 
         return usuarioRepository.save(novoUsuario);

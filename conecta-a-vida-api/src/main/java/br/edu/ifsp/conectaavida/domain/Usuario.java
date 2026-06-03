@@ -38,7 +38,10 @@ public class Usuario {
      * - "Administrador": Tem acesso total às telas de gestão do Painel Web.
      * - "Usuário Comum": Cidadão comum que acessa apenas o aplicativo mobile.
      */
-    private String localizacao;
+    private String localizacao; // deixei o comentario original do seu amigo ai em cima, mas agora isso aqui vai guardar a cidade de vdd msm
+
+    @Column(nullable = false)
+    private String permissao; // aqui a gente guarda o nivel de acesso real
 
     /**
      * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
