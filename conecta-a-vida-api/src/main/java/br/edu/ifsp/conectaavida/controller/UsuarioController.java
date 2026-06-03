@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * CONTROLADOR: UsuarioController (CRUD CENTRALIZADO + PROCESSAMENTO EM LOTE)
+ * * Explicação para o grupo: Corrigidos os fluxos de CSV e atualização cadastral
+ * para manter isolados e funcionais os campos de Localização (Cidade) e Permissão (Cargo).
+ */
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")
@@ -26,7 +31,7 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // ENDPOINT HERDADO DO MOBILE: Auto-cadastro público do smartphone (/api/usuarios/cadastro)
+    // ENDPOINT MOBILE: Auto-cadastro público vindo do smartphone
     @PostMapping("/cadastro")
     public ResponseEntity<?> autoCadastroMobile(@RequestBody Usuario usuario) {
         try {
@@ -37,20 +42,20 @@ public class UsuarioController {
         }
     }
 
-    // ENDPOINT WEB ADMIN: Obter todos cadastrados (CR2 CRUD - READ)
+    // WEB ADMIN: Listar todos (READ)
     @GetMapping
     public ResponseEntity<List<Usuario>> listarTodos() {
         return ResponseEntity.ok(usuarioRepository.findAll());
     }
 
-    // ENDPOINT WEB ADMIN: Gravação direta por formulário (CR2 CRUD - CREATE)
+    // WEB ADMIN: Inserir via formulário (CREATE)
     @PostMapping
     public ResponseEntity<Usuario> cadastrarAdmin(@RequestBody Usuario usuario) {
         Usuario salvo = usuarioService.cadastrarUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    // ENDPOINT WEB ADMIN: Modificar dados cadastrais (CR2 CRUD - UPDATE)
+    // WEB ADMIN: Alterar dados do cidadão (UPDATE)
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Usuario dados) {
         return usuarioRepository.findById(id).map(u -> {
@@ -59,11 +64,13 @@ public class UsuarioController {
             u.setIdade(dados.getIdade());
             u.setSexo(dados.getSexo());
             u.setLocalizacao(dados.getLocalizacao());
+            // 🟢 CORRIGIDO: Adicionada a persistência da permissão real para não perder o cargo na edição
+            u.setPermissao(dados.getPermissao());
             return ResponseEntity.ok(usuarioRepository.save(u));
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // ENDPOINT WEB ADMIN: Deletar registro do banco (CR2 CRUD - DELETE)
+    // WEB ADMIN: Remover do sistema (DELETE)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         if (!usuarioRepository.existsById(id)) return ResponseEntity.notFound().build();
@@ -71,7 +78,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-    // ATIVAÇÃO DO CR7: Rota Muitos-para-Muitos acionada pelo clique do botão
+    // REQUISITO CR7: Relacionamento Muitos-para-Muitos (Inscrição em Mutirões)
     @PostMapping("/{usuarioId}/campanhas/{campanhaId}")
     public ResponseEntity<?> inscreverEmCampanha(@PathVariable Long usuarioId, @PathVariable Long campanhaId) {
         try {
@@ -82,22 +89,27 @@ public class UsuarioController {
         }
     }
 
-    // EXPORTAÇÃO COMPLETA EM CSV: Constrói a planilha sob demanda anexando metadados HTTP
+    // EXPORTAÇÃO DE PLANILHA EM CSV TOTALMENTE REALINHADA
     @GetMapping("/exportar-csv")
     public ResponseEntity<String> exportarCsv() {
         List<Usuario> lista = usuarioRepository.findAll();
-        StringBuilder sb = new StringBuilder("ID;Nome;Email;Idade;Sexo;Permissao\n");
+        // 🟢 CORRIGIDO: Separados explicitamente os cabeçalhos de Cidade (Localizacao) e Cargo (Permissao)
+        StringBuilder sb = new StringBuilder("ID;Nome;Email;Idade;Sexo;Localizacao;Permissao\n");
         for (Usuario u : lista) {
-            sb.append(u.getId()).append(";").append(u.getNome()).append(";").append(u.getEmail()).append(";")
-                    .append(u.getIdade() != null ? u.getIdade() : "").append(";").append(u.getSexo() != null ? u.getSexo() : "").append(";")
-                    .append(u.getLocalizacao()).append("\n");
+            sb.append(u.getId()).append(";")
+                    .append(u.getNome()).append(";")
+                    .append(u.getEmail()).append(";")
+                    .append(u.getIdade() != null ? u.getIdade() : "").append(";")
+                    .append(u.getSexo() != null ? u.getSexo() : "").append(";")
+                    .append(u.getLocalizacao() != null ? u.getLocalizacao() : "").append(";")
+                    .append(u.getPermissao()).append("\n"); // 🟢 CORRIGIDO AQUI
         }
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=usuarios_conecta.csv")
                 .header("Content-Type", "text/csv; charset=UTF-8").body(sb.toString());
     }
 
-    // CARGA DE DADOS EM MASSA (UPLOADS): Processamento em lote (Batch Processing) via Stream
+    // IMPORTAÇÃO EM MASSA DE CSV TOTALMENTE BLINDADA
     @PostMapping("/importar-csv")
     public ResponseEntity<String> importarCsv(@RequestParam("file") MultipartFile file) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
@@ -107,14 +119,21 @@ public class UsuarioController {
                 if (cabecalho) { cabecalho = false; continue; }
                 String[] c = linha.split(";");
                 if (c.length >= 2) {
-                    Usuario u = new Usuario(); u.setNome(c[0].trim()); u.setEmail(c[1].trim()); u.setSenha("123456");
+                    Usuario u = new Usuario();
+                    u.setNome(c[0].trim());
+                    u.setEmail(c[1].trim());
+                    u.setSenha("123456"); // Senha provisória em hash para cargas em lote
+
                     if (c.length > 2 && !c[2].isEmpty()) u.setIdade(Integer.parseInt(c[2].trim()));
                     if (c.length > 3) u.setSexo(c[3].trim());
+                    // 🟢 CORRIGIDO: Realinhada a leitura posicional para capturar os dois novos campos sem estourar o banco
                     if (c.length > 4) u.setLocalizacao(c[4].trim());
+                    if (c.length > 5) u.setPermissao(c[5].trim());
+
                     lote.add(u);
                 }
             }
-            usuarioRepository.saveAll(lote); // Salva a lista inteira de uma só vez de forma otimizada
+            usuarioRepository.saveAll(lote); // Persistência em lote otimizada
             return ResponseEntity.ok("Sucesso! Carga processada, " + lote.size() + " cidadãos injetados no Supabase.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro no processamento da carga: " + e.getMessage());

@@ -14,8 +14,8 @@ import java.util.Map;
 
 /**
  * CONTROLLER: DashboardController
- * Rota Base: /api/dashboard
- * Objetivo: Cruzar e condensar estatísticas analíticas de tabelas diferentes.
+ * * Explicação para o grupo: Corrigida a query do contador de campanhas de 'Ativa' para 'ATIVA'.
+ * O PostgreSQL diferencia maiúsculas de minúsculas, o que fazia as métricas da home zerarem.
  */
 @RestController
 @RequestMapping("/api/dashboard")
@@ -26,16 +26,14 @@ public class DashboardController {
     @Autowired private ComunicacaoRepository comunicacaoRepository;
     @Autowired private LogAtividadeRepository logAtividadeRepository;
 
-    /**
-     * GET /api/dashboard/stats
-     * Consolida as métricas numéricas volumétricas reais do Supabase.
-     */
     @GetMapping("/stats")
     public ResponseEntity<?> obterMetricas() {
         try {
             long totalUsuarios = usuarioRepository.count();
             long alertasAtivos = comunicacaoRepository.countByTipoAndLidoFalse("ALERTA");
-            long campanhasAtivas = comunicacaoRepository.countByTipoAndStatus("CAMPANHA", "Ativa");
+
+            // 🟢 CORRIGIDO: Alterado para "ATIVA" para sincronizar com os dados estruturados do Supabase
+            long campanhasAtivas = comunicacaoRepository.countByTipoAndStatus("CAMPANHA", "ATIVA");
             long noticiasPublicadas = comunicacaoRepository.countByTipo("NOTICIA");
 
             return ResponseEntity.ok(Map.of(
@@ -49,10 +47,6 @@ public class DashboardController {
         }
     }
 
-    /**
-     * GET /api/dashboard/chart
-     * Calcula o fluxo mensal de usuários para preencher as barras verticais do gráfico.
-     */
     @GetMapping("/chart")
     public ResponseEntity<?> obterDadosGrafico() {
         try {
@@ -71,10 +65,6 @@ public class DashboardController {
         }
     }
 
-    /**
-     * GET /api/dashboard/logs/recentes
-     * Retorna a timeline das últimas 5 atividades executadas na plataforma.
-     */
     @GetMapping("/logs/recentes")
     public ResponseEntity<List<LogAtividade>> obterAtividadesRecentes() {
         try {

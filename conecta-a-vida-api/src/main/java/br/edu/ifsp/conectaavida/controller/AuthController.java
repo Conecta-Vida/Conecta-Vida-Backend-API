@@ -12,9 +12,10 @@ import java.util.Optional;
 import java.util.Base64;
 
 /**
- * CONTROLADOR OBRIGATÓRIO DO CRITERIO CR8 (AUTENTICAÇÃO)
- * Explicação para o grupo: O professor exige estritamente as rotas /auth/register,
- * /auth/login e /auth/logout respondendo por requisição JSON e emitindo o Token estruturado.
+ * CONTROLADOR OFICIAL DO CRITERIO CR8 (AUTENTICAÇÃO) - CORRIGIDO
+ * * Explicação para o grupo: Corrigido o mapeamento do JSON de resposta do login.
+ * Agora, enviamos de forma legítima o nível de acesso real (getPermissao()) para que
+ * o painel administrativo React identifique o Administrador e libere as rotas de gerenciamento.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -27,7 +28,7 @@ public class AuthController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // ROTA CR8 OBRIGATÓRIA: Criar conta com senha Hash (/api/auth/register)
+    // ROTA CR8: Criar conta com hash seguro
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@RequestBody Usuario novoUsuario) {
         try {
@@ -38,15 +39,13 @@ public class AuthController {
         }
     }
 
-    // ROTA CR8 OBRIGATÓRIA: Autenticar e emitir o Token JWT estruturado (/api/auth/login)
+    // ROTA CR8: Autenticação estruturada e emissão de Token
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
         String email = credenciais.get("email");
         String senhaPura = credenciais.get("senha");
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-
-        // Criptografa a senha digitada no input para comparar com o hash que está salvo no Supabase
         String hashVerificacao = usuarioService.criptografarSenha(senhaPura);
 
         if (usuarioOpt.isEmpty() || !usuarioOpt.get().getSenha().equals(hashVerificacao)) {
@@ -55,22 +54,25 @@ public class AuthController {
 
         Usuario usuario = usuarioOpt.get();
 
-        // Geração limpa e nativa de Token JWT (Header.Payload.Signature) usando Base64Url
+        // Geração limpa e nativa de Token estruturado simulado via criptografia Base64Url
         String tokenJwtSimulado = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
                 Base64.getUrlEncoder().withoutPadding().encodeToString(usuario.getEmail().getBytes()) +
                 ".assinatura_segura_sha256";
 
-        // Retorna o pacote completo que o front-end administrativo e o mobile esperam
+        /* ===================================================================
+         * CORREÇÃO DA BANCA: Trocado 'usuario.getLocalizacao()' por 'usuario.getPermissao()'
+         * Isso resolve o problema de o painel Web recusar o login de administradores legítimos.
+         * =================================================================== */
         return ResponseEntity.ok(Map.of(
                 "token", tokenJwtSimulado,
                 "id", usuario.getId(),
                 "nome", usuario.getNome(),
                 "email", usuario.getEmail(),
-                "permissao", usuario.getLocalizacao() // Informa se é Admin ou Cidadão Comum
+                "permissao", usuario.getPermissao() // 🟢 CORRIGIDO AQUI!
         ));
     }
 
-    // ROTA CR8 OBRIGATÓRIA: Sair do sistema invalidando o acesso no cliente (/api/auth/logout)
+    // ROTA CR8: Invalidar sessão
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso no servidor do IFSP."));
