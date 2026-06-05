@@ -1,156 +1,132 @@
-# 💉 Conecta à Vida - Painel de Controlo e API de Saúde Pública
+# ☕ Conecta à Vida - API Backend RESTful e Barramento de Dados
 
 <p align="center">
-<strong>Um ecossistema digital unificado focado no gerenciamento de dados de saúde pública, comunicação de crises e engajamento comunitário. Integra uma API robusta em Java com Spring Boot e uma interface administrativa Single Page Application (SPA) reativa em React com TypeScript.</strong>
+<strong>O motor inteligente e barramento de microsserviços RESTful responsável pelo processamento de regras de negócio, persistência física de dados em nuvem, controle volumétrico de dados e auditoria imutável. Fornece endpoints rápidos, assíncronos e tipados tanto para o Painel Administrativo Web (React) quanto para o Aplicativo Móvel do Cidadão (Flutter).</strong>
 </p>
 
 <p align="center">
 <img src="https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 17">
 <img src="https://img.shields.io/badge/Spring%20Boot-4.0.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 4.0.5">
-<img src="https://img.shields.io/badge/React-19.2.4-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19.2.4">
-<img src="https://img.shields.io/badge/TypeScript-5.9.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-<img src="https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+<img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 17">
+<img src="https://img.shields.io/badge/Supabase-Pooler-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+<img src="https://img.shields.io/badge/Gradle-8.x-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle">
 </p>
 
 -----
 
 ## 👥 Autores e Instituição
 * **Luiz Henrique Gonçalves**
-* **Gustavo** 
-* **Gabriel** 
-* **Renan** 
-* **Maycon** 
+* **Gustavo**
+* **Gabriel**
+* **Renan**
+* **Maycon**
 
 **IFSP - Câmpus Bragança Paulista** *Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas*
 
 -----
 
-## 📖 Sobre o Projeto e Detalhamento do Tema
+## 📖 Sobre o Módulo Backend (API)
 
-Em cenários de saúde pública, a descentralização das informações gera gargalos graves: atrasos na resposta a surtos epidemiológicos, desinformação em massa sobre cronogramas de vacinação e superlotação inadequada da infraestrutura médica municipal.
+A API REST do **Conecta à Vida** foi projetada sob o padrão arquitetural de camadas isoladas, separando estritamente as responsabilidades de entrada de rede (`Controllers`), validações e criptografia (`Services`), abstração de persistência (`Repositories`) e modelagem física relacional (`Domain`). 
 
-O **Conecta à Vida** é uma plataforma desenvolvida para sanar essa lacuna, atuando como o canal oficial de monitoramento e controle entre os órgãos reguladores de saúde (Hospitais, UPAs, UBSs) e a população civil. O sistema adota uma arquitetura desacoplada dividida em duas frentes integradas:
-
-1. **API REST (Backend):** Concentra o cérebro analítico do sistema, gerenciando auditorias imutáveis, persistência em nuvem, controle volumétrico de dados e segurança contra invasões.
-2. **Painel Administrativo (Frontend):** Uma interface corporativa ágil baseada no conceito de *Design Semântico*, onde cores e formas indicam o nível de gravidade das notificações de crise.
+Ela centraliza e processa de forma transacional todas as regras críticas do sistema, garantindo integridade referencial ao se comunicar diretamente com o cluster de alto desempenho do **Supabase (PostgreSQL)** localizado geograficamente na infraestrutura AWS de São Paulo.
 
 -----
 
-## ✨ Funcionalidades e Casos de Uso
+## 📦 Dependências e Pré-requisitos do Ecossistema
 
-### 🔐 A. Segurança e Antifraude (Módulo de Autenticação)
-* **Controle de Acesso Restrito:** Bloqueio de rotas privadas. Apenas utilizadores que possuam o cargo ou localização `"Administrador"` têm a sessão autorizada no ecossistema.
-* **Sistema Anti-Intrusão:** Monitoramento ativo em memória do servidor via `ConcurrentHashMap`. Se um mesmo e-mail falhar na autenticação **3 vezes consecutivas**, a API bloqueia provisoriamente a rota e dispara automaticamente um e-mail de alerta em tempo real (via SMTP/TLS) contendo os detalhes da tentativa de invasão para a chefia.
+O ecossistema utiliza o motor de automação e compilação **Gradle**. Ao inicializar o projeto, o barramento baixa de forma automática as seguintes bibliotecas mapeadas no arquivo de build:
 
-### 📊 B. Dashboard e Monitoramento Analítico
-* **Métricas Consolidadas:** Cards operacionais exibindo o total de cidadãos, alertas abertos, campanhas preventivas ativas e notícias publicadas de forma vitalícia.
-* **Gráfico de Crescimento:** Histórico gráfico interativo que demonstra o volume de adesão de novos utilizadores ao longo dos meses na base de dados.
-* **Linha do Tempo (Audit Log):** Exibição cronológica das 5 últimas ações técnicas capturadas pelo sistema para rastreabilidade completa das ações da equipa.
+### ⚙️ 1. Ambiente Global (Obrigatório na Máquina)
+* **Java Development Kit (JDK):** Versão 17 (Recomendado OpenJDK / Microsoft Build)
+* **Gerenciador de Ambientes:** Gradle 8.x (Embutido via wrapper local)
 
-### 👥 C. Gestão de Cidadãos (Usuários)
-* **CRUD Completo:** Listagem, cadastro, edição e remoção de dados demográficos da população.
-* **Operações em Lote (CSV):** Mecanismo de alta performance capaz de ler planilhas `.csv` enviadas pela interface e salvar centenas de utilizadores em um único lote de inserção (`saveAll`) para economizar conexões de rede com o Supabase.
-* **Motor de Documentos:** Geração assíncrona de relatórios analíticos de utilizadores formatados em PDF em tempo real, utilizando a biblioteca **iText 7**.
+### 📚 2. Dependências de Produção (Spring Boot Starters & Core)
+* **`spring-boot-starter-web` (v4.0.5):** Engine base para endpoints REST, mapeamento de rotas e servidor embutido Apache Tomcat 11.
+* **`spring-boot-starter-data-jpa` (v4.0.5) & `hibernate-core`:** Framework de mapeamento objeto-relacional (ORM) para tradução automática de classes Java em queries SQL nativas.
+* **`spring-boot-starter-validation` (v4.0.5):** Mecanismo de validação defensiva de dados (JSR-380 Bean Validation) via anotações em tempo de execução.
+* **`spring-boot-starter-mail` (v4.0.5) & `jakarta.mail-api`:** Barramento SMTP para o disparo automatizado de alertas e relatórios via e-mail.
+* **`spring-boot-starter-jdbc` & `HikariCP`:** Pool de conexões de alta performance para reaproveitamento de canais ativos com o banco de dados.
+* **`postgresql` (v42.7.10):** Driver JDBC nativo para conectividade estável com o PostgreSQL 17 do Supabase.
 
-### 🏥 D. Infraestrutura de Unidades de Saúde
-* **Mapeamento Descentralizado:** Cadastro de pontos de pronto atendimento classificados por categoria (Hospital Geral, UPA, Posto de Saúde, UBS).
-* **Controle de Cronogramas:** Definição pública e gerenciamento dos horários operacionais segmentados por dias úteis, sábados e domingos.
-
-### 📢 E. Central de Comunicação de Crises
-* **Alertas Emergenciais:** Disparo de notificações de urgência geolocalizadas (surtos de endemias, contaminações) contendo flags de controle de leitura.
-* **Campanhas e Informativos:** Publicação e curadoria de campanhas preventivas (doação de sangue, mutirões de vacinação) com filtros por data, localização e público-alvo.
+### 🛠️ 3. Ferramentas Utilitárias e Produtividade
+* **`lombok` (v1.18.44):** Processador de anotações em tempo de compilação para injeção automática de Getters, Setters, Construtores e Builders, reduzindo o código boilerplate.
+* **`com.itextpdf:kernel` & `layout` (v7.2.5):** Motor gráfico de baixo nível para compilação estruturada e exportação assíncrona de relatórios em formato PDF.
+* **`bcpkix-jdk15on` & `bcprov-jdk15on` (Bouncy Castle):** Provedores de segurança criptográfica avançada exigidos pelo iText PDF para manipulação de fluxos de documentos estáveis.
 
 -----
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ Funcionalidades e Casos de Uso da API
 
-### **Backend (API)**
-* **Linguagem Principal:** Java 17 (OpenJDK)
-* **Framework:** Spring Boot 4.0.5
-* **Camada de Persistência:** Spring Data JPA / Hibernate
-* **Motor de Relatórios:** iText 7 Core 7.2.5
-* **Ferramenta de Automação:** Gradle
-* **Gerenciamento de Código Limpo:** Lombok
-* **Serviço de Mensageria:** JavaMailSender (SMTP/TLS)
+### 🔐 A. Módulo de Autenticação e Contingência Anti-Intrusão
+* **Controle de Acesso por Nível:** Barramento que intercepta e valida os payloads de login. Apenas usuários cuja flag permissiva seja `"Administrador"` têm o acesso liberado para consumo do painel corporativo.
+* **Gatilho de Bloqueio por Força Bruta:** Lógica integrada via cache thread-safe que rastreia os erros sequenciais de senha. Ao atingir o limite de **3 tentativas incorretas**, a conta é provisoriamente suspensa e um e-mail de alerta de auditoria é enviado imediatamente.
 
-### **Frontend (Administrativo)**
-* **Biblioteca Core:** React 19.2.4
-* **Linguagem:** TypeScript 5.9.3 (Tipagem Estática Avançada)
-* **Ferramenta de Build:** Vite 8.0.1
-* **Roteamento de Aplicação:** React Router Dom 7.13.2
-* **Estilização e Design:** Tailwind CSS 4.2.2
-* **Pacote de Ícones:** Lucide React
-* **Feedback Flutuante:** Sonner (Toast Notification Management)
+### 📊 B. Engine Analítico do Dashboard
+* **Agregação Síncrona de Estatísticas:** Endpoints otimizados que executam queries de contagem (`count`) em lote para alimentar os blocos informativos superiores do frontend em milissegundos.
+* **Projeção de Gráficos:** Algoritmo de mapeamento que converte as métricas físicas da base de dados em coleções de DTOs estruturadas (Array de pares Chave/Valor) prontas para renderização visual direta.
+* **Pipeline de Auditoria Recente:** Consulta ordenada descendente controlada por limite fixo (`findTop5ByOrderByDataHoraDesc`) para abastecer a linha do tempo com os últimos passos técnicos.
+
+### 👥 C. Gerenciamento Populacional e Ingestão CSV
+* **Persistência Cadastral:** CRUD completo estruturado sob transações controladas pelo Hibernate.
+* **Mecanismo Bulk Ingest (CSV):** Rota de recepção do tipo `MultipartFile` configurada para processar streams de texto planilhados e salvar centenas de cidadãos em uma única transação, otimizando as conexões de rede.
+* **Compilação PDF Dinâmica:** Geração assíncrona baseada na renderização de tabelas e metadados via iText PDF, disponibilizando arquivos binários estruturados diretamente no fluxo de resposta HTTP.
+
+### 🏥 D. Infraestrutura Física e Controle de Horários
+* **Barramento de Unidades Médicas:** Endpoints dedicados para cadastramento e catalogação de UBSs, Hospitais e Prontos Socorros.
+* **Modelagem de Atendimento:** Persistência de grades horárias flexíveis contendo separação semântica para dias de semana, sábados e domingos.
+
+### 📢 E. Central de Emissão de Alertas e Campanhas
+* **Notificação Epidemiológica:** Cadastro e despacho de comunicados de urgência com controles condicionais de leitura (`lido = false`).
+* **Mutirões Comunitários:** Roteador reativo para criação e modificação pontual de campanhas preventivas (doações de sangue e vacinas) filtradas por data de início e fim.
 
 -----
 
-## 🎨 Estrutura Visual e Fluxo de Navegação
+## 🚀 Funcionalidades Extra e Otimizações de Engenharia
 
-O frontend foi desenvolvido como uma **Single Page Application (SPA)** otimizada com **Lazy Loading (Code Splitting)**, descarregando os ficheiros das páginas sob demanda na rede apenas quando clicados, utilizando componentes `<Suspense>` para garantir transições fluidas sem travamentos.
+Para elevar a robustez sistêmica e mitigar falhas em ambientes de estresse de infraestrutura, a API incorpora recursos avançados de engenharia de software:
 
-### 🗺️ Mapa Lógico de Roteamento
+* **⚡ Otimização Concorrente em Memória (Thread-Safe Memory Management):** O mecanismo de rastreamento de tentativas falhas de login utiliza estruturas de `ConcurrentHashMap` em vez de coleções convencionais. Isto assegura que múltiplas requisições paralelas vindas do React e do Flutter de forma simultânea sejam processadas sem risco de condições de corrida (*Race Conditions*) ou concorrência de memória.
+* **🛡️ Resiliência SMTP com Isolamento de Falhas (MailException Fault Tolerance):** O microsserviço de mensageria possui tratamento defensivo de exceções globais. Caso as chaves de e-mail estejam incorretas ou o servidor de produção sofra uma queda repentina de conexão com a internet externa no instante do disparo do alerta, a API captura a falha, registra o log descritivo no terminal, **mas não bloqueia ou derruba o pipeline**, mantendo os demais endpoints operantes.
+* **🩹 Validação de Dados em Camada Profunda (Bean Validation JSR-380):** Os DTOs de entrada possuem validação defensiva rígida por meio de anotações como `@Email`, `@NotBlank`, `@Size` e `@Positive`. Requisições maliciosas enviadas por fora do painel (via ferramentas como Postman) são interceptadas e barradas na camada HTTP, blindando o banco de dados Supabase contra corrupção de tipos.
+* **🚀 Gerenciamento de Pool de Conexões Hikari (Connection Lifecycle Management):** Configuração nativa de tempo de vida e conexões ociosas via HikariCP, assegurando que o barramento Java reutilize os canais abertos com a nuvem do Supabase, diminuindo o overhead de handshake TCP de rede e economizando recursos computacionais.
 
-```text
-                      [ Usuário acessa o Painel ]
-                                   │
-                                   ▼
-                        [ App.tsx (Roteador) ]
-                                   │
-                ┌──────────────────┴──────────────────┐
-                ▼                                     ▼
-      [ Rota Pública: /login ]             [ Rotas Privadas ]
-                │                                     │
-        (Autenticação OK)                             ▼
-                │                         [ Componente RotaProtegida ]
-                │                                     │
-                │                         ┌───────────┴───────────┐
-                │                         ▼ (Sem Sessão)          ▼ (Sessão OK)
-                │                  [ Expele para /login ]     [ Carrega AppLayout ]
-                │                                                     │
-                └─────────────────────────────────────────────────────┼────────────────────────┐
-                                                                      │                        │
-                                   ┌──────────────────┬───────────────┼───────────────┐        │
-                                   ▼                  ▼               ▼               ▼        ▼
-                            [ / (Dashboard) ]   [ /usuarios ]  [ /instituicoes ] [ /campanhas ] [ /alertas ]
-                                                                                      │
-                                                                                      ▼
-                                                                             [ /campanhas/:id ]
-```
----
+-----
 
-## 🗄️ Estrutura do Banco de Dados (Esquema PostgreSQL)
+## 🗄️ Estrutura do Banco de Dados (Esquema Oficial PostgreSQL)
 
-Abaixo estão descritos os dicionários e estruturas das tabelas físicas relacionais ativas na base de dados.
+Abaixo está o mapeamento exato da DDL de produção ativa na infraestrutura de nuvem do Supabase:
 
 ### 1. Tabela: `usuarios`
-
 ```sql
-CREATE TABLE usuarios (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    idade INTEGER,
-    sexo VARCHAR(50),
-    localizacao VARCHAR(255) -- Usado como Role/Permissão. Se 'Administrador', libera o painel.
+CREATE TABLE public.usuarios (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nome character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  senha character varying NOT NULL,
+  idade integer,
+  sexo character varying,
+  localizacao character varying,
+  permissao character varying NOT NULL DEFAULT 'Usuário Comum'::character varying,
+  CONSTRAINT usuarios_pkey PRIMARY KEY (id)
 );
-
 ```
 
 ### 2. Tabela: `instituicoes_saude`
 
 ```sql
-CREATE TABLE instituicoes_saude (
-    id BIGSERIAL PRIMARY KEY,
-    tipo_instituicao VARCHAR(50) NOT NULL, -- 'UNIDADE', 'HOSPITAL', 'UPA', 'POSTO'
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
-    telefone VARCHAR(50),
-    linksite VARCHAR(255),
-    endereco VARCHAR(255),
-    horario_seg_sex VARCHAR(100),
-    horario_sabado VARCHAR(100),
-    horario_domingo VARCHAR(100)
+CREATE TABLE public.instituicoes_saude (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  tipo_instituicao character varying NOT NULL,
+  nome character varying NOT NULL,
+  email character varying,
+  telefone character varying,
+  linksite character varying,
+  endereco character varying,
+  horario_seg_sex character varying,
+  horario_sabado character varying,
+  horario_domingo character varying,
+  CONSTRAINT instituicoes_saude_pkey PRIMARY KEY (id)
 );
 
 ```
@@ -158,33 +134,50 @@ CREATE TABLE instituicoes_saude (
 ### 3. Tabela Polimórfica: `comunicacoes`
 
 ```sql
-CREATE TABLE comunicacoes (
-    id BIGSERIAL PRIMARY KEY,
-    tipo VARCHAR(50) NOT NULL, -- Diferenciador estrutural: 'ALERTA', 'CAMPANHA', 'NOTICIA'
-    instituicao_id BIGINT REFERENCES instituicoes_saude(id),
-    titulo VARCHAR(255) NOT NULL,
-    descricao TEXT NOT NULL,
-    categoria VARCHAR(100), -- Ex: 'urgente', 'vacinação'
-    linkimagem VARCHAR(255),
-    localizacao VARCHAR(255), -- Região ou bairro afetado
-    publico_alvo VARCHAR(255),
-    status VARCHAR(50), -- Ex: 'Ativa', 'Encerrada'
-    lido BOOLEAN DEFAULT false, -- Baixa de leitura em alertas críticos
-    data_postada TIMESTAMP DEFAULT NOW(),
-    data_inicio TIMESTAMP,
-    data_fim TIMESTAMP
+CREATE TABLE public.comunicacoes (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  tipo character varying NOT NULL,
+  instituicao_id bigint,
+  titulo character varying NOT NULL,
+  descricao text NOT NULL,
+  categoria character varying,
+  linkimagem character varying,
+  localizacao character varying,
+  publico_alvo character varying,
+  status character varying,
+  lido boolean DEFAULT false,
+  data_postada timestamp without time zone DEFAULT now(),
+  data_inicio timestamp without time zone,
+  data_fim timestamp without time zone,
+  CONSTRAINT comunicacoes_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_comunicacao_instituicao FOREIGN KEY (instituicao_id) REFERENCES public.instituicoes_saude(id)
 );
 
 ```
 
-### 4. Tabela de Auditoria: `logs_atividade`
+### 4. Tabela de Relacionamento Muitos-para-Muitos: `usuarios_campanhas`
 
 ```sql
-CREATE TABLE logs_atividade (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id BIGINT NOT NULL REFERENCES usuarios(id),
-    acao VARCHAR(255) NOT NULL,
-    data_hora TIMESTAMP DEFAULT NOW()
+CREATE TABLE public.usuarios_campanhas (
+  usuario_id bigint NOT NULL,
+  comunicacao_id bigint NOT NULL,
+  CONSTRAINT usuarios_campanhas_pkey PRIMARY KEY (usuario_id, comunicacao_id),
+  CONSTRAINT usuarios_campanhas_comunicacao_id_fkey FOREIGN KEY (comunicacao_id) REFERENCES public.comunicacoes(id),
+  CONSTRAINT usuarios_campanhas_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
+);
+
+```
+
+### 5. Tabela de Auditoria: `logs_atividade`
+
+```sql
+CREATE TABLE public.logs_atividade (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  usuario_id bigint NOT NULL,
+  acao character varying NOT NULL,
+  data_hora timestamp without time zone NOT NULL DEFAULT now(),
+  CONSTRAINT logs_atividade_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_log_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id)
 );
 
 ```
@@ -193,81 +186,51 @@ CREATE TABLE logs_atividade (
 
 ## ⚙️ Instalação, Configuração e Execução
 
-### 1. Inicialização da Base de Dados
+### 1. Configurar o Arquivo Central de Propriedades
 
-Certifique-se de possuir um servidor PostgreSQL ativo (local ou via Supabase) e execute o comando de criação:
-
-```sql
-CREATE DATABASE conecta_a_vida_db;
-
-```
-
-### 2. Configuração do Ambiente Backend (Spring Boot)
-
-Aceda ao ficheiro `src/main/resources/application.properties` do seu projeto Java e ajuste as credenciais de banco e do servidor de e-mails:
+Aceda ao diretório `src/main/resources/application.properties` e valide as chaves de injeção externa e fallbacks que mapeiam os recursos de segurança que implementamos:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/conecta_a_vida_db
-spring.datasource.username=seu_usuario_postgres
-spring.datasource.password=sua_senha_postgres
-
-# Configuração automática do Hibernate
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-
 # ===================================================================
-# CONFIGURAÇÃO DO SERVIDOR DE E-MAIL (MÓDULO ANTI-INTRUSÃO)
+# CONFIGURAÇÕES DE BLINDAGEM E SEGURANÇA DA API (OWASP REQS)
 # ===================================================================
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=seu_email_remetente@gmail.com
-spring.mail.password=sua_senha_de_aplicativo_google
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+# Tenta ler as variáveis do sistema operacional do servidor. 
+# Se não encontrar, assume de forma autônoma os fallbacks de segurança locais.
+app.security.salt=${CONECTA_API_SALT:ConectaVida_SecretSalt_2026_IFSP}
+app.security.allowed-origins=${CONECTA_CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
 
 ```
 
-#### ✉️ Guia Importante sobre os Alertas de E-mail:
+#### ✉️ Tratamento de Exceções no Módulo de E-mails SMTP
 
-O sistema possui uma rotina de segurança que dispara um e-mail automático após **3 erros consecutivos** de senha de um utilizador.
+Caso o servidor esteja desconectado da rede externa de internet no instante em que o gatilho de intrusão for disparado por erros de senha, a aplicação capturará e interceptará internamente a falha de entrega de pacotes (`MailException`). O erro será exibido descritivamente por logs de aviso no terminal Java, **mas não irá travar, congelar ou derrubar a API**, garantindo a resiliência contínua dos endpoints para o React e o Flutter.
 
-* **Configuração de Credenciais:** O campo `spring.mail.password` **NÃO** deve receber a sua senha comum do e-mail. Para contas Gmail, é mandatório aceder às configurações da sua Conta Google, ativar a "Autenticação em Duas Etapas" e gerar uma **"Senha de Aplicativo"** exclusiva de 16 dígitos.
-* **Tratamento de Exceções em Execução:** Caso as credenciais SMTP estejam erradas ou o servidor local esteja sem acesso à internet externa na hora dos disparos, a aplicação irá imprimir um aviso descritivo de erro (`MailException`) no terminal Java (`System.out.println`), mas **não irá derrubar ou congelar a API**, garantindo que o restante das operações do painel continue funcional.
+### 2. Executar a Aplicação localmente via Gradle Wrapper
 
-Abra o terminal dentro da pasta raiz do backend e execute a aplicação via Gradle wrapper:
+Abra a pasta raiz do repositório backend no terminal do seu sistema ou IDE e acione o Gradle Wrapper para baixar as dependências e inicializar o Apache Tomcat integrado na porta `8080`:
 
 ```bash
-# No Windows
+# Execução em ambiente operacional Microsoft Windows
 gradlew.bat bootRun
 
-# No Linux ou Mac
+# Execução em ambiente operacional Linux ou macOS
 chmod +x gradlew
 ./gradlew bootRun
 
 ```
 
-* A API será iniciada com sucesso em `http://localhost:8080`.
+### 3. Compilar o Artefato Standalone de Produção (.jar)
 
-### 3. Configuração do Ambiente Frontend (React + Vite)
-
-Para garantir que o TypeScript compile perfeitamente e sem erros de importação com ficheiros de estilos CSS (`index.css`), garanta que o ficheiro global de definição do Vite exista na raiz da pasta `src/`:
-
-**Ficheiro:** `src/vite-env.d.ts`
-
-```typescript
-/// <reference types="vite/client" />
-
-```
-
-Abra o terminal dentro da pasta raiz do seu frontend (`conecta-a-vida-administrativo`) e execute os comandos de instalação de pacotes e inicialização do servidor de desenvolvimento:
+Para compilar todas as classes, rodar os analisadores estáticos e empacotar o microsserviço de forma isolada em um arquivo executável standalone pronto para deploy na nuvem ou proxy reverso (Nginx), execute o comando:
 
 ```bash
-npm install
-npm run dev
+./gradlew bootJar
 
 ```
 
-* O painel administrativo abrirá no seu navegador de forma automática através do endereço: `http://localhost:5173`.
+* O arquivo `.jar` final altamente compactado será gerado de forma bem-sucedida dentro do diretório `/build/libs/`.
+
+---
 
 © 2026 Conecta à Vida. Sistema homologado para fins acadêmicos. IFSP Bragança Paulista.
 
