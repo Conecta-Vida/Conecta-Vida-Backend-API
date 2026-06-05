@@ -2,60 +2,52 @@ package br.edu.ifsp.conectaavida.controller;
 
 import br.edu.ifsp.conectaavida.domain.Comunicacao;
 import br.edu.ifsp.conectaavida.repository.ComunicacaoRepository;
-import br.edu.ifsp.conectaavida.service.CampanhaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 /**
  * CONTROLLER: CampanhaController
  * Rota Base: /api/campanhas
+ * Objetivo: Listagem e modificação pontual de mutirões de saúde pública.
  */
 @RestController
 @RequestMapping("/api/campanhas")
-@CrossOrigin(origins = "*")
 public class CampanhaController {
 
-    @Autowired private CampanhaService service;
-    @Autowired private ComunicacaoRepository repository;
+    @Autowired
+    private ComunicacaoRepository comunicacaoRepository;
 
     @GetMapping
-    public List<Comunicacao> listar() {
-        return service.listarTodas();
+    public ResponseEntity<List<Comunicacao>> listarTodasCampanhas() {
+        List<Comunicacao> campanhas = comunicacaoRepository.findByTipoOrderByDataInicioDesc("CAMPANHA");
+        return ResponseEntity.ok(campanhas);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Comunicacao> buscarPorId(@PathVariable Long id) {
-        return repository.findById(id)
-                .filter(c -> "CAMPANHA".equals(c.getTipo())) // Blindagem: impede vazamento de dados caso o ID seja de uma Notícia
+        return comunicacaoRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Comunicacao> atualizar(@PathVariable Long id, @RequestBody Comunicacao dados) {
-        return repository.findById(id)
-                .filter(c -> "CAMPANHA".equals(c.getTipo()))
+    public ResponseEntity<?> atualizarCampanha(@PathVariable Long id, @RequestBody Comunicacao dadosNovos) {
+        return comunicacaoRepository.findById(id)
                 .map(campanha -> {
-                    campanha.setTitulo(dados.getTitulo());
-                    campanha.setDescricao(dados.getDescricao());
-                    campanha.setCategoria(dados.getCategoria());
-                    campanha.setLinkimagem(dados.getLinkimagem());
-                    campanha.setLocalizacao(dados.getLocalizacao());
-                    campanha.setDataInicio(dados.getDataInicio());
-                    campanha.setDataFim(dados.getDataFim());
-                    campanha.setPublicoAlvo(dados.getPublicoAlvo());
-                    campanha.setStatus(dados.getStatus());
-
-                    return ResponseEntity.ok(service.salvar(campanha));
-                }).orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
-        service.deletar(id);
-        return ResponseEntity.noContent().build();
+                    campanha.setTitulo(dadosNovos.getTitulo());
+                    campanha.setDescricao(dadosNovos.getDescricao());
+                    campanha.setCategoria(dadosNovos.getCategoria());
+                    campanha.setPublicoAlvo(dadosNovos.getPublicoAlvo());
+                    campanha.setLocalizacao(dadosNovos.getLocalizacao());
+                    campanha.setStatus(dadosNovos.getStatus() != null ? dadosNovos.getStatus().toUpperCase() : "ATIVA");
+                    campanha.setDataInicio(dadosNovos.getDataInicio());
+                    campanha.setDataFim(dadosNovos.getDataFim());
+                    Comunicacao atualizada = comunicacaoRepository.save(campanha);
+                    return ResponseEntity.ok(atualizada);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

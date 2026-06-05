@@ -29,6 +29,8 @@ public interface ComunicacaoRepository extends JpaRepository<Comunicacao, Long> 
     // SQL gerado: SELECT * FROM comunicacoes WHERE tipo = ? AND localizacao = ?;
     List<Comunicacao> findByTipoAndLocalizacao(String tipo, String localizacao);
 
+    // Adicione esta linha dentro do escopo da sua interface ComunicacaoRepository:
+    List<Comunicacao> findByTipoOrderByDataInicioDesc(String tipo);
 
     // ===================================================================
     // SOLUÇÃO DOS ERROS: MÉTODOS EXIGIDOS PELOS CONTROLADORES
