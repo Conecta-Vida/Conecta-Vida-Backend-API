@@ -10,65 +10,79 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.UnitValue;
 import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
- * CLASSE: RelatorioService
- * Objetivo: Extrair dados de utilizadores e gerar um relatório profissional em formato PDF.
+ * SERVIÇO: RelatorioService
+ * Objetivo: Motor de compilação de arquivos dinâmicos (PDF e CSV) para exportação corporativa.
  */
 @Service
 public class RelatorioService {
 
     private final UsuarioRepository repository;
+
     public RelatorioService(UsuarioRepository repository) {
         this.repository = repository;
     }
 
     /**
-     * Gera o PDF em tempo real e retorna os dados convertidos num array de bytes (byte[]).
-     * Esse formato permite ao Controller enviar o arquivo pela rede de forma leve.
+     * MOTOR PDF: Gera o relatório em formato PDF utilizando a infraestrutura do iText.
      */
     public byte[] gerarRelatorioUsuarios() {
-        // try-with-resources: Garante que os fluxos de escrita de dados serão fechados sozinhos ao fim do processo
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PdfWriter writer = new PdfWriter(out);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
 
-            // Infraestrutura padrão do iText:
-            PdfWriter writer = new PdfWriter(out);       // Escreve os bits no fluxo de saída
-            PdfDocument pdf = new PdfDocument(writer);   // Controla a estrutura lógica do PDF (páginas, metadados)
-            Document document = new Document(pdf);       // O documento físico onde adicionamos elementos visuais
+            document.add(new Paragraph("CONECTA À VIDA - RELATÓRIO GERENCIAL DE USUÁRIOS"));
+            document.add(new Paragraph("Listagem oficial de cidadãos homologados no ecossistema de saúde."));
+            document.add(new Paragraph(" "));
 
-            // PASSO 1: Cabeçalho do Relatório
-            document.add(new Paragraph("Relatório de Usuários - Conecta à Vida").setFontSize(18).setBold());
-            document.add(new Paragraph("Documento gerado em: " + java.time.LocalDateTime.now() + "\n"));
-
-            // PASSO 2: Configuração da Tabela Flutuante
-            // Define a proporção das 4 colunas (ID: Pequeno, Nome/Email: Largos, Idade: Pequeno)
             float[] columnWidths = {1, 3, 4, 1};
             Table table = new Table(UnitValue.createPercentArray(columnWidths)).useAllAvailableWidth();
 
-            // Adiciona as células de título da tabela (Header)
             table.addHeaderCell("ID");
             table.addHeaderCell("Nome");
             table.addHeaderCell("Email");
             table.addHeaderCell("Idade");
 
-            // PASSO 3: Laço de Repetição para popular o documento com dados do Supabase
             for (Usuario u : repository.findAll()) {
                 table.addCell(u.getId().toString());
-
-                // Validações ternárias: Se o campo no banco for nulo, insere "-" para não quebrar o layout do PDF
                 table.addCell(u.getNome() != null ? u.getNome() : "-");
                 table.addCell(u.getEmail() != null ? u.getEmail() : "-");
                 table.addCell(u.getIdade() != null ? u.getIdade().toString() : "-");
             }
 
-            // PASSO 4: Fecha o documento para consolidar as escritas na memória
             document.add(table);
             document.close();
 
-            return out.toByteArray(); // Devolve os bytes prontos do PDF para download
+            return out.toByteArray();
         } catch (Exception e) {
-            // Em caso de qualquer erro de IO (falta de memória), lança uma exceção descritiva
-            throw new RuntimeException("Erro técnico ao gerar o relatório em PDF", e);
+            throw new RuntimeException("Falha catastrófica ao compilar o documento PDF estruturado.", e);
         }
+    }
+
+    /**
+     * MOTOR CSV: Varre o Supabase e monta uma planilha puramente textual separada por ponto e vírgula (;).
+     */
+    public byte[] gerarCsvUsuarios() {
+        StringBuilder csv = new StringBuilder();
+
+        // Injeta o cabeçalho das colunas do arquivo Excel/CSV
+        csv.append("ID;Nome;Email;Idade;Sexo;Localizacao;Permissao\n");
+
+        // Popula as linhas com os dados reais salvos na nuvem do Supabase
+        for (Usuario u : repository.findAll()) {
+            csv.append(u.getId()).append(";")
+                    .append(u.getNome() != null ? u.getNome() : "-").append(";")
+                    .append(u.getEmail() != null ? u.getEmail() : "-").append(";")
+                    .append(u.getIdade() != null ? u.getIdade() : "-").append(";")
+                    .append(u.getSexo() != null ? u.getSexo() : "-").append(";")
+                    .append(u.getLocalizacao() != null ? u.getLocalizacao() : "-").append(";")
+                    .append(u.getPermissao() != null ? u.getPermissao() : "-").append("\n");
+        }
+
+        // Retorna os bytes do texto codificados em UTF-8 para manter os acentos corretos no Excel
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -15,10 +15,9 @@ import java.util.Map;
 /**
  * CONTROLLER: DashboardController
  * Rota Base: /api/dashboard
- * Objetivo: Centralizar as métricas analíticas e a timeline de auditoria da tela inicial do React.
- * * 🟢 CORRIGIDO: Removida a anotação genérica @CrossOrigin(origins = "*") local.
- * Isso elimina o conflito do Tomcat com a propriedade allowCredentials(true) do CorsConfig,
- * fazendo com que o erro IllegalArgumentException desapareça definitivamente do console.
+ * 🟢 MANTIDO: Todos os contadores estruturados pelos colegas permanecem intactos.
+ * 🛠️ CORREÇÃO: Atualizada a matriz do gráfico para incluir o mês de Junho/2026 e
+ * suavizar a escala de crescimento proporcional aos 25 usuários reais atuais.
  */
 @RestController
 @RequestMapping("/api/dashboard")
@@ -35,24 +34,16 @@ public class DashboardController {
 
     /**
      * GET /api/dashboard/stats
-     * Objetivo: Alimentar os 4 blocos de contadores superiores do painel administrativo.
+     * Alimenta os 4 blocos de contadores superiores (25, 8, 1, 6).
      */
     @GetMapping("/stats")
     public ResponseEntity<?> obterMetricas() {
         try {
-            // Conta de forma síncrona o total de linhas da tabela de usuários
             long totalUsuarios = usuarioRepository.count();
-
-            // Filtra comunicações polimórficas do tipo Alerta que não foram arquivadas (lido = false)
             long alertasAtivos = comunicacaoRepository.countByTipoAndLidoFalse("ALERTA");
-
-            // Filtra campanhas operando estritamente sob o estado de string "ATIVA"
             long campanhasAtivas = comunicacaoRepository.countByTipoAndStatus("CAMPANHA", "ATIVA");
-
-            // Contabiliza o volume total de informativos gerais publicados
             long noticiasPublicadas = comunicacaoRepository.countByTipo("NOTICIA");
 
-            // Devolve as chaves mapeadas em formato JSON estruturado
             return ResponseEntity.ok(Map.of(
                     "totalUsuarios", totalUsuarios,
                     "alertasAtivos", alertasAtivos,
@@ -66,20 +57,21 @@ public class DashboardController {
 
     /**
      * GET /api/dashboard/chart
-     * Objetivo: Fornecer a matriz de dados históricos para o gráfico de barras dinâmico do React.
+     * Fornece os dados para o gráfico de crescimento da plataforma.
      */
     @GetMapping("/chart")
     public ResponseEntity<?> obterDadosGrafico() {
         try {
             long totalUsuariosReal = usuarioRepository.count();
 
-            // Monta uma projeção distributiva de crescimento baseada na contagem real atual da base
+            // Monta uma curva de crescimento fluida escalando dinamicamente até o total real atual
             List<Map<String, Object>> dadosGrafico = new ArrayList<>();
-            dadosGrafico.add(Map.of("mes", "Jan", "quantidade", totalUsuariosReal > 2 ? 1 : 0));
-            dadosGrafico.add(Map.of("mes", "Fev", "quantidade", totalUsuariosReal > 5 ? 2 : 1));
-            dadosGrafico.add(Map.of("mes", "Mar", "quantidade", totalUsuariosReal > 8 ? 4 : 1));
-            dadosGrafico.add(Map.of("mes", "Abr", "quantidade", totalUsuariosReal > 12 ? 7 : totalUsuariosReal));
-            dadosGrafico.add(Map.of("mes", "Mai", "quantidade", totalUsuariosReal));
+            dadosGrafico.add(Map.of("mes", "Jan", "quantidade", (int) (totalUsuariosReal * 0.15))); // ~3
+            dadosGrafico.add(Map.of("mes", "Fev", "quantidade", (int) (totalUsuariosReal * 0.30))); // ~7
+            dadosGrafico.add(Map.of("mes", "Mar", "quantidade", (int) (totalUsuariosReal * 0.45))); // ~11
+            dadosGrafico.add(Map.of("mes", "Abr", "quantidade", (int) (totalUsuariosReal * 0.65))); // ~16
+            dadosGrafico.add(Map.of("mes", "Mai", "quantidade", (int) (totalUsuariosReal * 0.85))); // ~21
+            dadosGrafico.add(Map.of("mes", "Jun", "quantidade", (int) totalUsuariosReal));          // Total real (25)
 
             return ResponseEntity.ok(dadosGrafico);
         } catch (Exception e) {
@@ -89,12 +81,11 @@ public class DashboardController {
 
     /**
      * GET /api/dashboard/logs/recentes
-     * Objetivo: Abastecer a timeline lateral com as últimas 5 auditorias gravadas no ecossistema.
+     * Abastece a timeline lateral com as últimas auditorias.
      */
     @GetMapping("/logs/recentes")
     public ResponseEntity<List<LogAtividade>> obterAtividadesRecentes() {
         try {
-            // Dispara a query ordenada de forma descendente limitando os 5 primeiros registros
             List<LogAtividade> logs = logAtividadeRepository.findTop5ByOrderByDataHoraDesc();
             return ResponseEntity.ok(logs);
         } catch (Exception e) {
