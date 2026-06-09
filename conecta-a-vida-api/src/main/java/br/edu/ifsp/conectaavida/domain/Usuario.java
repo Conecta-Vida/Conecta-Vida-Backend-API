@@ -29,7 +29,9 @@ public class Usuario {
     @Column(nullable = false)
     private String senha; // Armazenará a senha em formato HASH (Criptografada)
 
-    private Integer idade;
+    @Column(name = "data_nascimento")
+    private Integer dataNascimento; // Armazena o ano de nascimento (Ex: 2004)
+
     private String sexo;
 
     /**
@@ -38,17 +40,13 @@ public class Usuario {
      * - "Administrador": Tem acesso total às telas de gestão do Painel Web.
      * - "Usuário Comum": Cidadão comum que acessa apenas o aplicativo mobile.
      */
-    private String localizacao; // deixei o comentario original do seu amigo ai em cima, mas agora isso aqui vai guardar a cidade de vdd msm
+    private String localizacao;
 
     @Column(nullable = false)
-    private String permissao; // aqui a gente guarda o nivel de acesso real
+    private String permissao; // Nível de acesso real
 
     /**
      * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
-     * Explicação para o grupo: Um Usuário (Cidadão) pode se inscrever em várias Campanhas de Saúde,
-     * e uma Campanha de Saúde pode ter vários Usuários inscritos.
-     * * O Hibernate gerencia isso criando automaticamente a tabela associativa física "usuarios_campanhas"
-     * no banco de dados, vinculando a chave estrangeira "usuario_id" com "comunicacao_id".
      */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
