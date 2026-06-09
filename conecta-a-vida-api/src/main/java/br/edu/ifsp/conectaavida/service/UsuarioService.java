@@ -19,11 +19,6 @@ public class UsuarioService {
     @Autowired
     private ComunicacaoRepository comunicacaoRepository;
 
-    /**
-     * 🔒 INTEGRADO (IDEIA 2): VARIÁVEL DE AMBIENTE PARA O SALT
-     * Busca o segredo configurado no sistema operacional. Caso não exista,
-     * utiliza o fallback padrão com segurança para o ano de 2026.
-     */
     @Value("${app.security.salt:ConectaVida_SecretSalt_2026_IFSP}")
     private String salt;
 
