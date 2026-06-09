@@ -1,3 +1,7 @@
+.gradle/
+build/
+out/
+
 # --- Build Artifacts ---
 # Ignore the main build directories
 target/
