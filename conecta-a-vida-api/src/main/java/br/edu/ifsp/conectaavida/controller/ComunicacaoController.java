@@ -6,13 +6,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.ifsp.conectaavida.domain.Comunicacao;
 import br.edu.ifsp.conectaavida.domain.LogAtividade;
@@ -98,6 +91,30 @@ public class ComunicacaoController {
             }
 
             return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarComunicacao(@PathVariable Long id, @RequestBody Comunicacao dadosNovos) {
+        return comunicacaoRepository.findById(id).map(comunicacao -> {
+            // Atualiza apenas os dados que vieram na requisição
+            if (dadosNovos.getTitulo() != null) comunicacao.setTitulo(dadosNovos.getTitulo());
+            if (dadosNovos.getDescricao() != null) comunicacao.setDescricao(dadosNovos.getDescricao());
+            if (dadosNovos.getCategoria() != null) comunicacao.setCategoria(dadosNovos.getCategoria());
+            if (dadosNovos.getLocalizacao() != null) comunicacao.setLocalizacao(dadosNovos.getLocalizacao());
+            
+            Comunicacao atualizada = comunicacaoRepository.save(comunicacao);
+
+            // REGISTRO DA TRILHA
+            Usuario adminLogado = usuarioRepository.findTopByPermissao("Administrador").orElse(null);
+            if (adminLogado != null) {
+                LogAtividade log = new LogAtividade();
+                log.setUsuario(adminLogado);
+                log.setAcao("Editou a comunicação ID: " + id + " (" + atualizada.getTitulo() + ")");
+                logAtividadeRepository.save(log);
+            }
+
+            return ResponseEntity.ok(atualizada);
         }).orElse(ResponseEntity.notFound().build());
     }
 
