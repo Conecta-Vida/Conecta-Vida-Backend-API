@@ -24,6 +24,7 @@ public class Usuario {
     @Column(nullable = false)
     private String senha; // Armazena a senha criptografada em SHA-256
 
+    @Column(name = "data_nascimento")
     private Integer idade;
     private String sexo;
 
