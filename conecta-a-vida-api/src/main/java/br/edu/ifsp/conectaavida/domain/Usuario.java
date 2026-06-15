@@ -22,28 +22,27 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String senha; // Armazena a senha criptografada em SHA-256
+    private String senha; // Armazenará a senha em formato HASH (Criptografada)
 
-    private Integer idade;
+    @Column(name = "data_nascimento")
+    private Integer dataNascimento; // Armazena o ano de nascimento (Ex: 2004)
+
     private String sexo;
 
     /**
-     * LOCALIZAÇÃO GEOGRÁFICA (MANTIDO EXCLUSIVO DO MOBILE)
-     * Usado pelo app do smartphone para filtrar o Feed de notícias e alertas regionais.
-     * Exemplos: "Zona Norte", "Centro", "Lavapés", "Zona Rural".
+     * CAMPO LOCALIZAÇÃO (METADADO DE PERMISSÃO):
+     * Usado estrategicamente para definir o papel do usuário no sistema:
+     * - "Administrador": Tem acesso total às telas de gestão do Painel Web.
+     * - "Usuário Comum": Cidadão comum que acessa apenas o aplicativo mobile.
      */
-    @Column(name = "localizacao")
     private String localizacao;
 
-    /**
-     * NÍVEL DE PERMISSÃO / PAPEL NO SISTEMA (ADICIONADO PARA SEGURANÇA WEB)
-     * Determina se a conta possui acesso liberado às telas de gestão do painel corporativo.
-     * - "Administrador": Gestor com acesso completo.
-     * - "Usuário Comum": Cidadão comum do aplicativo móvel.
-     */
-    @Column(name = "permissao", nullable = false)
-    private String permissao;
+    @Column(nullable = false)
+    private String permissao; // Nível de acesso real
 
+    /**
+     * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
+     */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "usuarios_campanhas",
