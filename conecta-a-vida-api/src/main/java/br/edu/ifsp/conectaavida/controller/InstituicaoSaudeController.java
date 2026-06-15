@@ -61,7 +61,7 @@ public class InstituicaoSaudeController {
             return ResponseEntity.notFound().build();
         }
 
-        // 🛡️ ADIÇÃO DEFENSIVA: Desvincula as comunicações desta instituição (seta a FK para NULL)
+        // ADIÇÃO DEFENSIVA: Desvincula as comunicações desta instituição (seta a FK para NULL)
         // Isso impede o erro de integridade e mantém a notícia visível no mobile, apenas sem instituição atrelada.
         comunicacaoRepository.findAll().stream()
                 .filter(c -> c.getInstituicao() != null && c.getInstituicao().getId().equals(id))

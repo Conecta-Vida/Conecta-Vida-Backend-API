@@ -22,26 +22,16 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String senha; // Armazena a senha criptografada em SHA-256
+    private String senha;
 
     @Column(name = "data_nascimento")
-    private Integer idade;
+    private Integer dataNascimento;
+
     private String sexo;
 
-    /**
-     * LOCALIZAÇÃO GEOGRÁFICA (MANTIDO EXCLUSIVO DO MOBILE)
-     * Usado pelo app do smartphone para filtrar o Feed de notícias e alertas regionais.
-     * Exemplos: "Zona Norte", "Centro", "Lavapés", "Zona Rural".
-     */
     @Column(name = "localizacao")
     private String localizacao;
 
-    /**
-     * NÍVEL DE PERMISSÃO / PAPEL NO SISTEMA (ADICIONADO PARA SEGURANÇA WEB)
-     * Determina se a conta possui acesso liberado às telas de gestão do painel corporativo.
-     * - "Administrador": Gestor com acesso completo.
-     * - "Usuário Comum": Cidadão comum do aplicativo móvel.
-     */
     @Column(name = "permissao", nullable = false)
     private String permissao;
 

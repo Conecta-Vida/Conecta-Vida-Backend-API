@@ -13,4 +13,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // Verifica duplicidade de contas no cadastro (Se retornar true, barra o insert)
     boolean existsByEmail(String email);
+
+    // Busca o primeiro administrador que encontrar no banco de forma otimizada!
+    Optional<Usuario> findTopByPermissao(String permissao);
 }

@@ -17,7 +17,6 @@ import java.util.Map;
 /**
  * CONTROLLER: UsuarioController
  * Rota Base: /api/usuarios
- * 🟢 CORRIGIDO: Removido o caractere intruso do GetMapping e sincronizado o método do RelatorioService.
  */
 @RestController
 @RequestMapping("/api/usuarios")
@@ -68,7 +67,7 @@ public class UsuarioController {
                 .map(usuario -> {
                     usuario.setNome(dadosNovos.getNome());
                     usuario.setEmail(dadosNovos.getEmail());
-                    usuario.setIdade(dadosNovos.getIdade());
+                    usuario.setDataNascimento(dadosNovos.getDataNascimento()); // 🟢 Atualizado para dataNascimento
                     usuario.setSexo(dadosNovos.getSexo());
                     usuario.setLocalizacao(dadosNovos.getLocalizacao());
                     if (dadosNovos.getPermissao() != null) {
@@ -144,9 +143,6 @@ public class UsuarioController {
         }
     }
 
-    /**
-     * 🟢 CORRIGIDO DEFINITIVAMENTE: Removido o caractere '条' e sincronizada a chamada com o RelatorioService
-     */
     @GetMapping("/exportar-csv")
     public ResponseEntity<byte[]> exportarCsvFallback() {
         byte[] csv = relatorioService.gerarCsvUsuarios();
