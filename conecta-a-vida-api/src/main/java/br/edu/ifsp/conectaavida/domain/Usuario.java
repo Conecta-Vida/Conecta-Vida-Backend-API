@@ -27,6 +27,8 @@ public class Usuario {
     @Column(name = "data_nascimento")
     private Integer dataNascimento; // Armazena o ano de nascimento (Ex: 2004)
 
+    @Column(name = "data_nascimento")
+    private Integer idade;
     private String sexo;
 
     /**
