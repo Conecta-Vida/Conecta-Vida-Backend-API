@@ -1,5 +1,6 @@
 package br.edu.ifsp.conectaavida.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ public class Usuario {
     private String senha;
 
     @Column(name = "data_nascimento")
+    @JsonProperty("data_nascimento")
     private Integer dataNascimento;
 
     private String sexo;
