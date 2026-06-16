@@ -43,25 +43,15 @@ public class ComunicacaoController {
         try {
             comunicacao.setDataPostada(LocalDateTime.now());
             Comunicacao salva = comunicacaoRepository.save(comunicacao);
-
-            // 💥 REGISTRO DA TRILHA EM TEMPO REAL
-            Usuario adminLogado = usuarioRepository.findAll().stream()
-                    .filter(u -> "Administrador".equalsIgnoreCase(u.getPermissao()))
-                    .findFirst().orElse(null);
-
-            if (adminLogado != null) {
-                LogAtividade log = new LogAtividade();
-                log.setUsuario(adminLogado);
-                log.setAcao("Publicou uma nova " + salva.getTipo() + " no sistema (Título: " + salva.getTitulo() + ")");
-                logAtividadeRepository.save(log);
-            }
-
             return ResponseEntity.ok(salva);
+        } catch (IllegalArgumentException e) {
+            // Se for um erro de validação retorna 400 Bad Request
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
+            // Se for erro na nuvem/banco retorna 500 Internal Error
             return ResponseEntity.internalServerError().body(Map.of("message", e.getLocalizedMessage()));
         }
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletarComunicacao(@PathVariable Long id) {
         return comunicacaoRepository.findById(id).map(comunicacao -> {
@@ -82,7 +72,7 @@ public class ComunicacaoController {
 
             comunicacaoRepository.delete(comunicacao);
 
-            // 💥 REGISTRO DA TRILHA EM TEMPO REAL
+            // REGISTRO DA TRILHA EM TEMPO REAL
             if (adminLogado != null) {
                 LogAtividade log = new LogAtividade();
                 log.setUsuario(adminLogado);

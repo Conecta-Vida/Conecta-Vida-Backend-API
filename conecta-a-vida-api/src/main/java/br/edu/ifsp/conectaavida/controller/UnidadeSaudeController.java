@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/unidade-saude")
-@CrossOrigin(origins = "*")
 public class UnidadeSaudeController {
 
     @Autowired private InstituicaoSaudeRepository repository;

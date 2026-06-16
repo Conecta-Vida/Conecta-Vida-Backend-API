@@ -11,13 +11,18 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/logs")
-@CrossOrigin(origins = "*")
 public class LogAtividadeController {
 
     private final LogAtividadeRepository repository;
 
     public LogAtividadeController(LogAtividadeRepository repository) {
         this.repository = repository;
+    }
+
+    // Adicionar dentro de LogAtividadeController.java
+    @GetMapping
+    public List<LogAtividade> listarTodasAsAtividades() {
+        return repository.findAll();
     }
 
     @GetMapping("/recentes")

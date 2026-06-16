@@ -1,4 +1,5 @@
 package br.edu.ifsp.conectaavida.domain;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -22,6 +23,7 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String senha;
 
@@ -37,6 +39,10 @@ public class Usuario {
     @Column(name = "permissao", nullable = false)
     private String permissao;
 
+    /**
+     * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
+     */
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "usuarios_campanhas",
