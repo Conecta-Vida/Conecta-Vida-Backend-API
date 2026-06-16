@@ -20,6 +20,12 @@ public class LogAtividadeController {
         this.repository = repository;
     }
 
+    // Adicionar dentro de LogAtividadeController.java
+    @GetMapping
+    public List<LogAtividade> listarTodasAsAtividades() {
+        return repository.findAll();
+    }
+
     @GetMapping("/recentes")
     public List<LogAtividade> listarRecentes() {
         return repository.findTop5ByOrderByDataHoraDesc();
