@@ -1,4 +1,5 @@
 package br.edu.ifsp.conectaavida.domain;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,14 +22,13 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String senha; // Armazenará a senha em formato HASH (Criptografada)
 
     @Column(name = "data_nascimento")
     private Integer dataNascimento; // Armazena o ano de nascimento (Ex: 2004)
 
-    @Column(name = "data_nascimento")
-    private Integer idade;
     private String sexo;
 
     /**
@@ -45,6 +45,7 @@ public class Usuario {
     /**
      * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
      */
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "usuarios_campanhas",
