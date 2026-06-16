@@ -1,6 +1,6 @@
-.gradle/
-build/
-out/
+**/.gradle/
+**/build/
+**/out/
 
 # --- Build Artifacts ---
 # Ignore the main build directories
@@ -30,7 +30,7 @@ src/main/resources/application.properties
 out/
 
 # Visual Studio Code
-.vscode/
+**/.vscode/
 
 # NetBeans
 /nbproject/private/
