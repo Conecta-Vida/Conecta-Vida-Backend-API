@@ -10,5 +10,5 @@ RUN rm -rf /home/gradle/.gradle/caches \
 # Estágio 2: Rodar o projeto
 FROM openjdk:17.0.1-jdk-slim
 EXPOSE 8080
-COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
+COPY build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
