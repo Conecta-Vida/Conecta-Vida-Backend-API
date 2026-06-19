@@ -16,7 +16,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer {
 
     // Injeta os domínios permitidos separados por vírgula. Padrão: localhost do React | 4000 para rodar o flutter também
-    @Value("${app.security.allowed-origins:http://localhost:5173,http://localhost:3000,http://localhost:4000}")
+    // 🟢 ADICIONADO: URL_DA_SUA_PAGINA_HOSPEDADA no final da lista para liberar o seu React que já está na internet
+    @Value("${app.security.allowed-origins:http://localhost:5173,http://localhost:3000,http://localhost:4000,https://conecta-vida-api.onrender.com}")
     private String allowedOrigins;
 
     @Override

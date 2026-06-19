@@ -19,6 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/alertas")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:4000"}) // 🔥 Linha adicionada para permitir o acesso do Frontend
 public class AlertaController {
 
     @Autowired
