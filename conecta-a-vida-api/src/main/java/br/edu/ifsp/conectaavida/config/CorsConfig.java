@@ -15,9 +15,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    // Injeta os domínios permitidos separados por vírgula. Padrão: localhost do React | 4000 para rodar o flutter também
-    // 🟢 ADICIONADO: URL_DA_SUA_PAGINA_HOSPEDADA no final da lista para liberar o seu React que já está na internet
-    @Value("${app.security.allowed-origins:http://localhost:5173,http://localhost:3000,http://localhost:4000,https://conecta-vida-api.onrender.com}")
+    // 🟢 CORRIGIDO: Substituída a URL da API pela URL oficial do Frontend hospedado na Vercel
+    @Value("${app.security.allowed-origins:http://localhost:5173,http://localhost:3000,http://localhost:4000,https://conecta-vida-admin.vercel.app}")
     private String allowedOrigins;
 
     @Override
