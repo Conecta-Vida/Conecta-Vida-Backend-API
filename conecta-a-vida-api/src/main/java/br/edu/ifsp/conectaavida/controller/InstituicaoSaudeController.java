@@ -9,12 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * CONTROLLER: InstituicaoSaudeController
- * 🟢 PRESERVAÇÃO TOTAL: Mantidos os métodos originais de listar, cadastrar e atualizar.
- * O método Delete agora define a instituição das comunicações como NULL antes de apagar,
- * impedindo que os alertas/notícias sumam ou deem erro no aplicativo Mobile.
- */
 @RestController
 @RequestMapping("/api/instituicoes")
 public class InstituicaoSaudeController {
@@ -70,7 +64,7 @@ public class InstituicaoSaudeController {
                     comunicacaoRepository.save(c);
                 });
 
-        // Agora apaga com segurança total
+        
         repository.deleteById(id);
         return ResponseEntity.ok().build();
     }

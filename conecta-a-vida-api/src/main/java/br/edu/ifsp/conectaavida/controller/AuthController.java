@@ -97,8 +97,10 @@ public class AuthController {
                 "id", usuario.getId(),
                 "nome", usuario.getNome(),
                 "email", usuario.getEmail(),
-                "permissao", usuario.getPermissao(), // Envia o nível de acesso real (Administrador)
-                "localizacao", usuario.getLocalizacao() != null ? usuario.getLocalizacao() : "" // Mantém o bairro disponível
+                "permissao", usuario.getPermissao(), 
+                "localizacao", usuario.getLocalizacao() != null ? usuario.getLocalizacao() : "",
+                "data_nascimento", usuario.getDataNascimento() != null ? usuario.getDataNascimento() : 0,
+                "sexo", usuario.getSexo() != null ? usuario.getSexo() : "Não informado"
         ));
     }
 

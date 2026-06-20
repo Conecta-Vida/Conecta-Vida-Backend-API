@@ -22,8 +22,7 @@ import java.util.Map;
 
 /**
  * CONTROLLER: ComunicacaoController
- * 🟢 PRESERVAÇÃO TOTAL: Mantido o mapeamento polimórfico de criação e remoção segura de campanhas.
- * ⚡ ADIÇÃO DA TRILHA: Grava logs automáticos de postagens e deleções de informativos.
+ * TRILHA: Grava logs automáticos de postagens e deleções de informativos.
  */
 @RestController
 @RequestMapping("/api/comunicacoes")
@@ -108,7 +107,7 @@ public class ComunicacaoController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Adicione isto no ComunicacaoController.java
+    
     @GetMapping
     public ResponseEntity<List<Comunicacao>> listarTodas() {
         return ResponseEntity.ok(comunicacaoRepository.findAll());

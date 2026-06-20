@@ -151,4 +151,11 @@ public class UsuarioController {
                 .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
                 .body(csv);
     }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Usuario> buscarPorEmail(@PathVariable String email) {
+        return usuarioRepository.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
