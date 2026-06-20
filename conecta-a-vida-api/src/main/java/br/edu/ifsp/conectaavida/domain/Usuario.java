@@ -23,7 +23,7 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) //permite ler senha no cadastro, mas n envia pra n vazar
     @Column(nullable = false)
     private String senha;
 
