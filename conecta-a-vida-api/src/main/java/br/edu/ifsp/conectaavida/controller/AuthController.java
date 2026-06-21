@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -109,22 +108,58 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso no servidor do IFSP."));
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.getOrDefault("email", "").trim();
+        if (email.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", "E-mail é obrigatório."));
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
+        if (usuarioOpt.isPresent()) {
+            enviarEmailRecuperacao(email);
+        }
+
+        // Resposta neutra para evitar enumeração de contas
+        return ResponseEntity.ok(Map.of(
+                "mensagem",
+                "Se o e-mail estiver cadastrado, as instruções de recuperação foram enviadas."
+        ));
+    }
+
     private void dispararEmailAlertaInvasao(String emailDestinatario) {
+        String assunto = "⚠️ ALERTA DE SEGURANÇA: Tentativas de Invasão de Conta Detectadas";
+        String corpo = "Olá,\n\n" +
+                "Identificamos 3 tentativas consecutivas e incorretas de login utilizando o seu endereço de e-mail (" + emailDestinatario + ") no Painel do Conecta à Vida.\n\n" +
+                "O acesso para esta conta foi SUSPENSO temporariamente na nossa API REST.\n\n" +
+                "Atenciosamente,\n" +
+                "Módulo de Auditoria e Segurança - IFSP Câmpus Bragança Paulista";
+        enviarEmail(emailDestinatario, assunto, corpo, "seguranca@conectaavida.com.br");
+    }
+
+    private void enviarEmailRecuperacao(String emailDestinatario) {
+        String assunto = "Conecta à Vida - Recuperação de Senha";
+        String corpo = "Olá,\n\n" +
+                "Recebemos uma solicitação de recuperação de senha para a sua conta no Conecta à Vida.\n" +
+                "Para sua segurança, entre em contato com a equipe administradora para redefinição assistida.\n\n" +
+                "Atenciosamente,\n" +
+                "Equipe Conecta à Vida";
+
+        enviarEmail(emailDestinatario, assunto, corpo, "no-reply@conectaavida.com.br");
+    }
+
+    private void enviarEmail(String emailDestinatario, String assunto, String corpo, String remetente) {
         try {
             SimpleMailMessage mensagem = new SimpleMailMessage();
-            mensagem.setFrom("seguranca@conectaavida.com.br");
+            mensagem.setFrom(remetente);
             mensagem.setTo(emailDestinatario);
-            mensagem.setSubject("⚠️ ALERTA DE SEGURANÇA: Tentativas de Invasão de Conta Detectadas");
-            mensagem.setText("Olá,\n\n" +
-                    "Identificamos 3 tentativas consecutivas e incorretas de login utilizando o seu endereço de e-mail (" + emailDestinatario + ") no Painel do Conecta à Vida.\n\n" +
-                    "O acesso para esta conta foi SUSPENSO temporariamente na nossa API REST.\n\n" +
-                    "Atenciosamente,\n" +
-                    "Módulo de Auditoria e Segurança - IFSP Câmpus Bragança Paulista");
+            mensagem.setSubject(assunto);
+            mensagem.setText(corpo);
 
             mailSender.send(mensagem);
-            System.out.println("📧 Trilha de Segurança: E-mail de alerta enviado para: " + emailDestinatario);
+            System.out.println("📧 E-mail enviado para: " + emailDestinatario);
         } catch (Exception e) {
-            System.err.println("❌ Falha ao disparar e-mail de segurança: " + e.getMessage());
+            System.err.println("❌ Falha ao enviar e-mail: " + e.getMessage());
         }
     }
 }

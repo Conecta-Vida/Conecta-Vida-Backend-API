@@ -41,6 +41,8 @@ public class Usuario {
 
     /**
      * REQUISITO CR7: RELACIONAMENTO MUITOS-PARA-MUITOS
+     * Nota histórica: Substituído por relacionamento através de UsuarioCampanha
+     * para suportar auditoria, rastreamento de notificações e exclusão em cascata.
      */
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
@@ -51,4 +53,23 @@ public class Usuario {
             inverseJoinColumns = @JoinColumn(name = "comunicacao_id", referencedColumnName = "id")
     )
     private Set<Comunicacao> campanhasInscritas = new HashSet<>();
+
+    /**
+     * NOVO: Relacionamento com entidade intermediária UsuarioCampanha.
+     * 
+     * Propósito: Permite rastreamento detalhado de cada inscrição:
+     * - Quando o usuário se inscreveu (data_inscricao)
+     * - Se recebeu notificação de fim (data_notificacao_fim)
+     * - Se leu a notificação (notificacao_lida)
+     * - Cascata automática: ao deletar usuário, todas inscrições são removidas
+     * 
+     * Explicação para o grupo:
+     * A tabela usuarios_campanhas agora é uma "ponte inteligente" que não apenas
+     * conecta dois objetos, mas também guarda informações sobre quando essa conexão
+     * foi criada e o que aconteceu com essa inscrição ao longo do tempo.
+     */
+    @JsonIgnore
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, 
+               cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<UsuarioCampanha> inscricioes = new HashSet<>();
 }

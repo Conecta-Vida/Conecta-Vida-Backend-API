@@ -1,8 +1,11 @@
 package br.edu.ifsp.conectaavida.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * ENTIDADE POLIMÓRFICA: COMUNICAÇÃO
@@ -63,4 +66,20 @@ public class Comunicacao {
 
     @Column(name = "data_fim")
     private LocalDateTime dataFim; // Fim da campanha (or data de vencimento da notícia do mobile)
+
+    /**
+     * NOVO: Coleção de inscrições de usuários nesta campanha/comunicação.
+     * 
+     * CascadeType.REMOVE garante que ao deletar esta comunicação,
+     * todos os registros de inscrição de usuários são removidos automaticamente,
+     * evitando referências órfãs no banco de dados.
+     * 
+     * Explicação para o grupo:
+     * Este atributo mapeia o lado "um" da relação muitos-para-muitos.
+     * Se uma campanha for deletada, a tabela usuarios_campanhas será limpa automaticamente.
+     */
+    @JsonIgnore
+    @OneToMany(mappedBy = "comunicacao", fetch = FetchType.LAZY,
+               cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<UsuarioCampanha> inscritos = new HashSet<>();
 }

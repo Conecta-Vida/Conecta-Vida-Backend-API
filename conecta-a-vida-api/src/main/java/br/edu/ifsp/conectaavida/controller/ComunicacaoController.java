@@ -4,21 +4,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-
 import br.edu.ifsp.conectaavida.domain.Comunicacao;
 import br.edu.ifsp.conectaavida.domain.LogAtividade;
 import br.edu.ifsp.conectaavida.domain.Usuario;
 import br.edu.ifsp.conectaavida.repository.ComunicacaoRepository;
-import br.edu.ifsp.conectaavida.repository.UsuarioRepository;
 import br.edu.ifsp.conectaavida.repository.LogAtividadeRepository;
+import br.edu.ifsp.conectaavida.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.Map;
 
 /**
  * CONTROLLER: ComunicacaoController
@@ -111,5 +105,27 @@ public class ComunicacaoController {
     @GetMapping
     public ResponseEntity<List<Comunicacao>> listarTodas() {
         return ResponseEntity.ok(comunicacaoRepository.findAll());
+    }
+
+    @PostMapping("/compartilhamentos")
+    public ResponseEntity<?> registrarCompartilhamento(@RequestBody Map<String, String> payload) {
+        try {
+            String titulo = payload.getOrDefault("titulo", "Notícia");
+            String categoria = payload.getOrDefault("categoria", "Geral");
+            String sharedBy = payload.getOrDefault("sharedBy", "app_user");
+
+            Usuario usuarioRef = usuarioRepository.findByEmail(sharedBy)
+                    .or(() -> usuarioRepository.findTopByPermissao("Administrador"))
+                    .orElse(null);
+
+            LogAtividade log = new LogAtividade();
+            log.setUsuario(usuarioRef);
+            log.setAcao("Compartilhamento mobile: '" + titulo + "' (" + categoria + ") por " + sharedBy);
+            logAtividadeRepository.save(log);
+
+            return ResponseEntity.ok(Map.of("mensagem", "Compartilhamento registrado com sucesso."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("mensagem", "Falha ao registrar compartilhamento."));
+        }
     }
 }
