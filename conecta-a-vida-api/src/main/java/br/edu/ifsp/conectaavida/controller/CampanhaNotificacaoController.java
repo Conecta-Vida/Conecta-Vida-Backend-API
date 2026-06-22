@@ -11,8 +11,10 @@ import br.edu.ifsp.conectaavida.repository.LogAtividadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +52,7 @@ public class CampanhaNotificacaoController {
      * A inscrição é rastreada com data e hora automáticas.
      */
     @PostMapping("/{comunicacaoId}/inscrever")
+    @Transactional
     public ResponseEntity<?> inscreverUsuario(
             @PathVariable Long comunicacaoId,
             @RequestBody Map<String, Long> payload) {
@@ -108,6 +111,7 @@ public class CampanhaNotificacaoController {
      * e rastreamento de quem foi notificado e quando.
      */
     @PostMapping("/{comunicacaoId}/notificar-fim")
+    @Transactional
     public ResponseEntity<?> notificarFimCampanha(@PathVariable Long comunicacaoId) {
         try {
             var comunicacao = comunicacaoRepository.findById(comunicacaoId)
@@ -161,23 +165,37 @@ public class CampanhaNotificacaoController {
      * Lista todos os usuários inscritos em uma campanha e seu status de notificação.
      */
     @GetMapping("/{comunicacaoId}/inscritos")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listarInscritos(@PathVariable Long comunicacaoId) {
         try {
             List<UsuarioCampanha> inscritos = usuarioCampanhaRepository
                     .findByComunicacaoId(comunicacaoId);
 
+            List<Map<String, Object>> inscritosFormatados = new ArrayList<>();
+
+            for (UsuarioCampanha uc : inscritos) {
+            if (uc.getUsuario() == null) {
+                continue;
+            }
+
+            Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("usuario_id", uc.getUsuario().getId());
+            item.put("usuario_nome", uc.getUsuario().getNome() != null ? uc.getUsuario().getNome() : "Sem nome");
+            item.put("usuario_email", uc.getUsuario().getEmail() != null ? uc.getUsuario().getEmail() : "Sem e-mail");
+            item.put("data_inscricao", uc.getDataInscricao() != null ? uc.getDataInscricao().toString() : "Pendente");
+            item.put(
+                "data_notificacao_fim",
+                uc.getDataNotificacaoFim() != null
+                    ? uc.getDataNotificacaoFim().toString()
+                    : "Pendente"
+            );
+            item.put("notificacao_lida", uc.getNotificacaoLida() != null && uc.getNotificacaoLida());
+            inscritosFormatados.add(item);
+            }
+
             return ResponseEntity.ok(Map.of(
-                    "total_inscritos", inscritos.size(),
-                    "inscritos", inscritos.stream().map(uc -> Map.of(
-                            "usuario_id", uc.getUsuario().getId(),
-                            "usuario_nome", uc.getUsuario().getNome(),
-                            "usuario_email", uc.getUsuario().getEmail(),
-                            "data_inscricao", uc.getDataInscricao().toString(),
-                            "data_notificacao_fim", uc.getDataNotificacaoFim() != null 
-                                    ? uc.getDataNotificacaoFim().toString() 
-                                    : "Pendente",
-                            "notificacao_lida", uc.getNotificacaoLida()
-                    )).toList()
+                "total_inscritos", inscritosFormatados.size(),
+                "inscritos", inscritosFormatados
             ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
@@ -192,6 +210,7 @@ public class CampanhaNotificacaoController {
      * Demonstra operações de limpeza com cascata segura.
      */
     @DeleteMapping("/{comunicacaoId}/desinscrever")
+    @Transactional
     public ResponseEntity<?> desinscreverUsuario(
             @PathVariable Long comunicacaoId,
             @RequestBody Map<String, Long> payload) {

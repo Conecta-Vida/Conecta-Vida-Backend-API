@@ -66,9 +66,13 @@ public class AuthController {
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
         String hashVerificacao = usuarioService.criptografarSenha(senhaPura);
+        String hashLegado = usuarioService.criptografarSenhaLegada(senhaPura);
 
         // MECANISMO ANTI-INTRUSÃO: Validação preventiva de tentativas falhas consecutivas
-        if (usuarioOpt.isEmpty() || !usuarioOpt.get().getSenha().equals(hashVerificacao)) {
+        if (usuarioOpt.isEmpty() || (
+            !usuarioOpt.get().getSenha().equals(hashVerificacao) &&
+            !usuarioOpt.get().getSenha().equals(hashLegado)
+        )) {
             int tentativas = tentativasPorEmail.getOrDefault(email, 0) + 1;
             tentativasPorEmail.put(email, tentativas);
 
@@ -84,6 +88,13 @@ public class AuthController {
         }
 
         Usuario usuario = usuarioOpt.get();
+
+        // Se o usuário antigo foi validado com o hash legado, migra a senha para o padrão atual.
+        if (usuario.getSenha() != null && usuario.getSenha().equals(hashLegado) && !usuario.getSenha().equals(hashVerificacao)) {
+            usuario.setSenha(hashVerificacao);
+            usuarioRepository.save(usuario);
+        }
+
         tentativasPorEmail.remove(email); // Reseta contagem de erros se acertar
 
         String tokenJwtSimulado = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
