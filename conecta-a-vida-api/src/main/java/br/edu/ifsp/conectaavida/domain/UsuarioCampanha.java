@@ -32,21 +32,15 @@ public class UsuarioCampanha {
      * CascadeType.REMOVE e orphanRemoval = true garantem
      * que ao deletar um usuário, todos seus registros de inscrição são removidos.
      */
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "usuario_id", nullable = false, 
-        foreignKey = @ForeignKey(name = "fk_usuarios_campanhas_usuario_id"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false,
+         foreignKey = @ForeignKey(name = "fk_usuarios_campanhas_usuario_id"))
     private Usuario usuario;
 
-    /**
-     * Referência à comunicação/campanha.
-     * CascadeType.REMOVE garante que ao deletar uma campanha,
-     * todos os registros de inscrição são removidos (sem deixar órfãos).
-     */
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comunicacao_id", nullable = false,
         foreignKey = @ForeignKey(name = "fk_usuarios_campanhas_comunicacao_id"))
     private Comunicacao comunicacao;
-
     /**
      * Data e hora em que o usuário se inscreveu na campanha.
      * Preenchido automaticamente pelo banco via DEFAULT NOW().
