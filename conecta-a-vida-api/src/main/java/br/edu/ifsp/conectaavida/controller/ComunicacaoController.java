@@ -1,5 +1,6 @@
 package br.edu.ifsp.conectaavida.controller;
 
+import br.edu.ifsp.conectaavida.service.FcmService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -31,11 +32,24 @@ public class ComunicacaoController {
     @Autowired
     private LogAtividadeRepository logAtividadeRepository;
 
+    @Autowired
+    private FcmService fcmService;
+
     @PostMapping
     public ResponseEntity<?> cadastrarComunicacao(@RequestBody Comunicacao comunicacao) {
         try {
             comunicacao.setDataPostada(LocalDateTime.now());
             Comunicacao salva = comunicacaoRepository.save(comunicacao);
+
+            // Dispara push notification quando o gestor cria um ALERTA
+            if ("ALERTA".equalsIgnoreCase(salva.getTipo())) {
+                fcmService.enviarParaTodos(
+                        "🚨 " + salva.getTitulo(),
+                        salva.getDescricao() != null ? salva.getDescricao() : "Alerta de saúde pública.",
+                        Map.of("tipo", "ALERTA", "id", String.valueOf(salva.getId()))
+                );
+            }
+
             return ResponseEntity.ok(salva);
         } catch (IllegalArgumentException e) {
             // Se for um erro de validação retorna 400 Bad Request
