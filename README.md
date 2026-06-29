@@ -12,6 +12,12 @@
 <img src="https://img.shields.io/badge/Gradle-8.x-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle">
 </p>
 
+<p align="center">
+  <a href="" title="Clique para assistir à demonstração">
+    <img src="https://img.shields.io/badge/Assista%20à%20Demonstração-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Assista à Demonstração">
+  </a>
+</p>
+
 -----
 
 ## 👥 Autores e Instituição
