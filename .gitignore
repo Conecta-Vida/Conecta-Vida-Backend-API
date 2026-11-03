@@ -1,19 +1,16 @@
 **/.gradle/
 **/build/
 **/out/
-
-# --- Build Artifacts ---
-# Ignore the main build directories
 target/
 build/
 bin/
-out/
 
-# ------- IGNORAR SENHA -------
-src/main/resources/application.properties
+# Configuracao local e segredos
+.env
+.env.*
+!.env.example
 
-# --- IDE Specific Files ---
-# Eclipse / Spring Tool Suite (STS)
+# IDEs
 .apt_generated
 .classpath
 .factorypath
@@ -21,36 +18,21 @@ src/main/resources/application.properties
 .settings/
 .springBeans
 .sts4-cache/
-
-# IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
-out/
-
-# Visual Studio Code
 **/.vscode/
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 
-# NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-# --- Dependency Management ---
-# Keep the wrapper but ignore the heavy jar if you prefer, 
-# though usually, the jar is kept for CI/CD. 
-# If you want to keep it, comment out the line below:
-# .mvn/wrapper/maven-wrapper.jar
-
-# --- Log files ---
+# Logs e sistema operacional
 *.log
 logs/
 hs_err_pid*
 replay_pid*
-
-# --- OS / Miscellaneous ---
 .DS_Store
 Thumbs.db
