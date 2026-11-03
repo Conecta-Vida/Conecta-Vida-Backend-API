@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  api:
+    image: ${REGISTRY_IMAGE:-conecta-vida-api:latest}
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: ${DB_URL:?Defina DB_URL no ambiente do manager}
+      DB_USERNAME: ${DB_USERNAME:?Defina DB_USERNAME no ambiente do manager}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente do manager}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      CONECTA_API_SALT: ${CONECTA_API_SALT:?Defina CONECTA_API_SALT no ambiente do manager}
+      CONECTA_CORS_ORIGINS: ${CONECTA_CORS_ORIGINS:-http://localhost}
+      FCM_SERVER_KEY: ${FCM_SERVER_KEY:-}
+    networks:
+      - conecta-net
+    deploy:
+      replicas: 2
+      endpoint_mode: vip
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8081:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - conecta-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+networks:
+  conecta-net:
+    driver: overlay
+    attachable: true
